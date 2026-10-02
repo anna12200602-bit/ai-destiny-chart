@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>流年運勢</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700;900&display=swap" rel="stylesheet">
+<!-- 排盤套件（固定版本）：八字／五行用 lunar-javascript，紫微斗數用 iztro -->
+<script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.7/lunar.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/iztro@2.6.1/dist/iztro.min.js"></script>
+<style>
+  /* ===== 配色：低飽和灰粉（霧玫瑰灰）＋ 乾淨中性底 ===== */
+  :root{
+    /* ===== 配色：灰粉（霧玫瑰）× 乾淨淺底，單色系不用漸層 ===== */
+    --bg:#f8f4f5;        /* 頁面底：帶一點灰粉的淺白 */
+    --bg2:#f6f1f2;       /* 輸入框底 */
+    --card:#ffffff;
+    --card2:#f3ecee;
+    --line:#eadfe2;      /* 邊框 */
+    --text:#463c41;      /* 主文字 */
+    --muted:#938489;     /* 次要文字 */
+    --gold:#9c7480;      /* 強調文字色（灰粉深） */
+    --gold2:#86626d;
+    --accent:#9c7480;
+    --btn:#a8828e;       /* ★ 按鈕／選中底色：灰粉 */
+    --btn-hover:#94707c;
+    --btn-text:#ffffff;
+    --rose-soft:#f3eaed; /* 灰粉淺底 */
+    --blue-soft:#f5f1f2; /* 中性淺底 */
+    --danger:#b98a92; --ok:#86a99b;
+    --wood:#a9c8b3; --fire:#e3a9a6; --earth:#dfcaa3; --metal:#c9c4cf; --water:#a7c0dc;
+    --radius:20px;
+    --shadow:0 4px 16px rgba(120,90,100,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--text);font-family:"Noto Sans TC",system-ui,sans-serif;line-height:1.75}
+  body{min-height:100vh;background:
+var(--bg)}
+  button,input,select{font:inherit;color:inherit}
+  .wrap{max-width:960px;margin:0 auto;padding:0 16px}
+  header.top{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-family:"Noto Serif TC",serif;font-weight:900;font-size:20px;letter-spacing:2px;cursor:pointer;color:var(--text)}
+  .logo-mark{width:36px;height:36px;border-radius:50%;background:var(--rose-soft);border:1.5px solid #e8dade;display:grid;place-items:center;color:var(--gold);font-size:16px}
+  .icon-btn{background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 14px;color:var(--muted);cursor:pointer;font-size:14px;backdrop-filter:blur(6px)}
+  .icon-btn:hover{border-color:var(--gold);color:var(--gold)}
+  .page{display:none;animation:fade .4s ease}
+  .page.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* Hero */
+  .hero{text-align:center;padding:72px 0 56px}
+  .hero .badge{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 16px;color:var(--gold);font-size:13px;margin-bottom:24px}
+  .hero h1{font-family:"Noto Serif TC",serif;font-weight:900;font-size:clamp(28px,6vw,48px);line-height:1.4;letter-spacing:1px;color:var(--text)}
+  .hero h1 .g{color:var(--gold)}
+  .hero p{color:var(--muted);margin:20px auto 36px;max-width:520px;font-size:16px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:999px;padding:14px 34px;font-weight:700;cursor:pointer;transition:.2s}
+  .btn-gold{background:var(--btn);color:var(--btn-text);box-shadow:0 6px 16px rgba(168,130,142,.35)}
+  .btn-gold:hover{background:var(--btn-hover);transform:translateY(-1px)}
+  .btn-ghost{background:#fff;border:1px solid var(--line);color:var(--text)}
+  .btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:0 0 60px}
+  .feat{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+      .feat b{display:block;color:var(--gold);font-family:"Noto Serif TC",serif;margin-bottom:6px}
+    .feat span{color:var(--muted);font-size:14px}
+
+  /* Card / form */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
+  .section-title{font-family:"Noto Serif TC",serif;font-size:24px;margin:24px 0 6px;color:var(--text)}
+  .section-sub{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr}}
+  .field label{display:block;font-size:14px;color:var(--muted);margin-bottom:6px}
+  .field label .req{color:var(--gold)}
+  .field input,.field select{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;outline:none;color-scheme:light}
+  .field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(168,130,142,.14);background:#fff}
+  .field .hint{font-size:12px;color:var(--muted);margin-top:4px}
+  .field.err input,.field.err select{border-color:var(--danger)}
+  .field .msg{font-size:12px;color:var(--danger);margin-top:4px;display:none}
+  .field.err .msg{display:block}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1px solid var(--line);background:var(--bg2);border-radius:999px;padding:8px 16px;cursor:pointer;font-size:14px;transition:.15s;color:var(--text)}
+  .chip:hover{border-color:var(--gold)}
+  .chip.on{border-color:var(--btn-hover);color:var(--btn-text);background:var(--btn);font-weight:700}
+  .form-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:24px;flex-wrap:wrap}
+  .notice{font-size:13px;color:#938489;background:var(--rose-soft);border:1px dashed #e8dade;border-radius:12px;padding:10px 14px;margin-top:16px}
+  code{background:var(--blue-soft);padding:0 5px;border-radius:5px;font-size:.92em}
+
+  /* Loading */
+  .loading{text-align:center;padding:100px 0}
+  .orb{width:96px;height:96px;margin:0 auto 28px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--gold);border-right-color:var(--accent);animation:spin 1.2s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .steps{list-style:none;color:var(--muted);font-size:14px;margin-top:16px}
+  .steps li{padding:4px 0}
+  .steps li.done{color:var(--ok)}
+  .steps li.now{color:var(--gold);font-weight:700}
+
+  /* Result */
+  .res-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin:16px 0}
+  .res-head h2{font-family:"Noto Serif TC",serif;font-size:26px}
+  .res-head .meta{color:var(--muted);font-size:14px}
+  .tag{display:inline-block;font-size:12px;border-radius:999px;padding:2px 10px;margin-left:6px;vertical-align:middle}
+  .tag.mock{background:#f7f0f1;color:#86626d;border:1px solid #e8d9dd}
+  .tag.api{background:#e6f2ed;color:#5f8f7e;border:1px solid #c9e2d8}
+  .tag.type{background:var(--rose-soft);color:var(--gold);border:1px solid #e8dade}
+  .mock-banner{background:#f9f3f4;border:1px solid #e8d9dd;color:#86626d;border-radius:14px;padding:12px 16px;font-size:14px;margin-bottom:16px}
+  .pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:8px 0 18px}
+  .pillar{background:#fff;border:1px solid var(--line);border-radius:14px;text-align:center;padding:12px 6px}
+    .pillar small{display:block;color:var(--muted);font-size:12px}
+  .pillar b{font-family:"Noto Serif TC",serif;font-size:22px;letter-spacing:4px;color:var(--text)}
+  .chart-cols{display:grid;grid-template-columns:1.1fr 1fr;gap:20px}
+  @media(max-width:720px){.chart-cols{grid-template-columns:1fr}.pillars{grid-template-columns:repeat(2,1fr)}}
+  .bar-row{display:grid;grid-template-columns:44px 1fr 32px;align-items:center;gap:10px;margin:8px 0;font-size:14px}
+  .bar{height:10px;background:#f1e9eb;border-radius:999px;overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:999px;transition:width .8s ease}
+  .kv{font-size:14px;color:var(--muted)}
+  .kv b{color:var(--text);font-weight:700}
+  .pill-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .pill-list span{font-size:12px;background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--text)}
+  .summary{font-size:17px;line-height:1.95;border-left:3px solid var(--btn);padding-left:16px;margin:4px 0 16px}
+  .traits{display:flex;flex-wrap:wrap;gap:8px}
+  .traits span{background:var(--rose-soft);border:1px solid #e8dade;color:#86626d;border-radius:999px;padding:4px 14px;font-size:14px}
+    .tabs{display:flex;gap:6px;overflow-x:auto;border-bottom:1px solid var(--line);margin:28px 0 0;scrollbar-width:none}
+  .tab{background:none;border:none;border-bottom:2px solid transparent;padding:10px 16px;color:var(--muted);cursor:pointer;white-space:nowrap}
+  .tab:hover{color:var(--text)}
+  .tab.on{color:var(--gold);border-bottom-color:var(--gold);font-weight:700}
+  .tab-panel{display:none;padding-top:20px}
+  .tab-panel.on{display:block;animation:fade .3s}
+  .overview{margin-bottom:16px}
+  .three{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:720px){.three{grid-template-columns:1fr}}
+  .box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+  .box h4{font-size:14px;margin-bottom:8px}
+  .box.s{border-top:3px solid var(--ok)} .box.s h4{color:var(--ok)}
+  .box.c{border-top:3px solid var(--danger)} .box.c h4{color:var(--danger)}
+  .box.g{border-top:3px solid var(--btn)} .box.g h4{color:var(--gold)}
+  .box ul{padding-left:18px;font-size:14px;color:var(--text)}
+  .box li{margin:4px 0}
+  .year-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:640px){.year-grid{grid-template-columns:1fr}}
+  .theme-big{font-family:"Noto Serif TC",serif;font-size:20px;color:var(--gold);margin-bottom:16px}
+  pre.code{background:#f6f1f2;border:1px solid var(--line);border-radius:14px;padding:16px;overflow:auto;font-size:12.5px;line-height:1.6;max-height:480px;white-space:pre-wrap;word-break:break-word;color:#54484d}
+  .empty{color:var(--muted);font-size:14px;font-style:italic}
+  .disclaimer{margin:28px 0;font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+  .res-actions{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 60px}
+  .switcher{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  .switcher select{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 14px;color-scheme:light}
+  .raw-warn{background:var(--rose-soft);border:1px solid #e8dade;border-radius:14px;padding:12px 16px;font-size:14px;margin-bottom:12px;color:#86626d}
+
+  /* Modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(60,55,58,.3);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modal-bg.on{display:flex}
+  .modal{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;width:100%;max-width:520px;max-height:90vh;overflow:auto;box-shadow:0 20px 50px rgba(70,62,66,.14)}
+  .modal h3{font-family:"Noto Serif TC",serif;margin-bottom:4px}
+  .modal .field{margin-top:14px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#fff;border:1px solid var(--gold);color:var(--text);padding:10px 20px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:.3s;z-index:60;box-shadow:var(--shadow)}
+  .toast.on{opacity:1}
+  footer{color:var(--muted);font-size:12px;text-align:center;padding:24px 0 32px}
+
+  /* ===== v3 新增：首頁區塊 / 問題與推薦 / 各系統命盤 / 延伸提問 ===== */
+  textarea{font:inherit;color:inherit;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;outline:none;resize:vertical;min-height:90px}
+  textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(168,130,142,.14);background:#fff}
+  .home-sec{margin:0 0 56px}
+  .home-sec h2{font-family:"Noto Serif TC",serif;font-size:24px;text-align:center;margin-bottom:6px}
+  .home-sec .sub{color:var(--muted);text-align:center;font-size:14px;margin-bottom:22px}
+  .fit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+  .fit{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow)}
+  .fit .ic{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:16px;background:var(--rose-soft)}
+    .fit b{display:block;font-size:15px}
+  .fit span{font-size:13px;color:var(--muted)}
+  .sys-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+  .sys{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .sys::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:var(--btn)}
+  .sys .nm{font-family:"Noto Serif TC",serif;font-size:19px;font-weight:700;margin-bottom:2px}
+  .sys .en{font-size:12px;color:var(--muted);margin-bottom:10px}
+  .sys .good{font-size:14px;margin-bottom:10px}
+  .sys .need{font-size:12px;color:var(--gold);background:var(--blue-soft);display:inline-block;border-radius:999px;padding:2px 10px}
+  .flow{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:720px){.flow{grid-template-columns:1fr}}
+  .flow div{text-align:center;background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px}
+  .flow i{font-style:normal;display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--btn);color:var(--btn-text);font-weight:700;margin-bottom:8px}
+  .flow b{display:block}
+  .flow span{font-size:13px;color:var(--muted)}
+  .step-label{display:flex;align-items:center;gap:10px;font-family:"Noto Serif TC",serif;font-size:18px;margin:4px 0 14px}
+  .step-label i{font-style:normal;font-family:"Noto Sans TC";display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--rose-soft);color:var(--gold);font-size:13px;font-weight:700}
+  .card + .card{margin-top:16px}
+  .check{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin-top:6px;cursor:pointer}
+  .check input{width:auto}
+  .rec{margin-top:16px;border-radius:16px;padding:18px;background:var(--rose-soft);border:1px solid #e8dade}
+  .rec-top{font-size:14px;color:var(--muted)}
+  .rec-main{font-family:"Noto Serif TC",serif;font-size:20px;font-weight:700;margin:2px 0 6px}
+  .rec-main em{font-style:normal;color:var(--gold)}
+  .rec-why{font-size:14px}
+  .rec-note{font-size:12px;color:#86626d;margin-top:6px}
+  .sys-pick{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:14px}
+  .sp{display:flex;align-items:flex-start;gap:10px;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;transition:.15s}
+  .sp.on{border-color:var(--btn-hover);box-shadow:0 0 0 3px rgba(168,130,142,.35)}
+  .sp .box-ck{flex:none;width:18px;height:18px;border-radius:6px;border:1.5px solid var(--line);margin-top:3px;display:grid;place-items:center;font-size:12px;color:#fff}
+  .sp.on .box-ck{background:var(--btn-hover);border-color:var(--btn-hover);color:var(--btn-text)}
+  .sp b{display:block;font-size:14px}
+  .sp small{font-size:12px;color:var(--muted)}
+  .sp .star{font-size:11px;color:var(--btn-text);background:var(--btn);border-radius:999px;padding:0 8px;margin-left:4px}
+  .sp.dis{opacity:.5}
+  /* 結果：問題解答 */
+  .qa-card{border-top:4px solid var(--btn)}
+  .qa-q{font-size:14px;color:var(--muted);margin-bottom:6px}
+  .qa-q b{color:var(--text)}
+  .qa-a{font-size:16px;line-height:1.95;margin:10px 0 14px}
+  .actions-list{list-style:none;display:grid;gap:8px}
+  .actions-list li{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px 10px 40px;position:relative;font-size:14px}
+  .actions-list li::before{content:"✓";position:absolute;left:14px;top:10px;color:var(--ok);font-weight:700}
+  .used{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+  .used span{font-size:12px;border-radius:999px;padding:2px 10px;background:#fff;color:var(--muted);border:1px solid var(--line)}
+  /* 各系統命盤 */
+  .sys-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}
+  .sys-tab{border:1px solid var(--line);background:var(--bg2);border-radius:999px;padding:6px 14px;font-size:14px;cursor:pointer}
+  .sys-tab.on{background:var(--btn);color:var(--btn-text);border-color:var(--btn-hover);font-weight:700}
+  .sys-panel{display:none}
+  .sys-panel.on{display:block;animation:fade .3s}
+  .palaces{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media(max-width:640px){.palaces{grid-template-columns:repeat(2,1fr)}}
+  .palace{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+    .palace small{display:block;font-size:12px;color:var(--muted)}
+  .palace b{font-family:"Noto Serif TC",serif;font-size:17px}
+  .num-wrap{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+  .num-big{width:120px;height:120px;border-radius:50%;display:grid;place-items:center;font-family:"Noto Serif TC",serif;font-size:52px;font-weight:900;color:var(--btn-text);background:var(--btn);box-shadow:0 8px 20px rgba(168,130,142,.35)}
+  .num-info{flex:1;min-width:220px}
+  .num-info .calc{font-size:13px;color:var(--muted);background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:8px 0;font-family:ui-monospace,monospace}
+  .insight-list{display:grid;gap:12px}
+  .insight{background:#fff;border:1px solid var(--line);border-left:4px solid var(--btn);border-radius:12px;padding:14px 16px}
+    .insight b{display:block;margin-bottom:4px;font-family:"Noto Serif TC",serif}
+  /* 延伸提問 */
+  .chat-card{margin-top:28px}
+  .chat-log{display:flex;flex-direction:column;gap:12px;max-height:520px;overflow-y:auto;padding:4px 2px 8px}
+  .msg{max-width:85%;border-radius:18px;padding:12px 16px;font-size:15px;line-height:1.85;word-break:break-word}
+  .msg .t{white-space:pre-wrap}
+  .msg.user{align-self:flex-end;background:var(--btn);color:var(--btn-text);border-bottom-right-radius:6px}
+  .msg.ai{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:6px}
+  .msg.ai .basis{margin-top:8px;font-size:12px;color:var(--muted)}
+  .msg.ai ul{margin:6px 0 0 18px;white-space:normal}
+  .msg.err{border-color:#e8d9dd;background:#f9f3f4;color:#86626d}
+  .typing span{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--gold);margin:0 2px;animation:blink 1s infinite}
+  .typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+  @keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+  .suggest{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+  .suggest button{border:1px dashed #e3d3d8;background:var(--rose-soft);color:#86626d;border-radius:999px;padding:6px 14px;font-size:13px;cursor:pointer}
+  .suggest button:hover{border-style:solid}
+  .chat-input{display:flex;gap:10px;align-items:flex-end}
+  .chat-input textarea{min-height:52px;flex:1}
+  .chat-input .btn{padding:12px 22px}
+  .chat-empty{text-align:center;color:var(--muted);font-size:14px;padding:12px 0}
+
+  /* ===== v4：問題解答結構 / 判讀重點宮位 ===== */
+  .qa-conclusion{font-size:18px;font-weight:700;line-height:1.8;color:var(--text);background:var(--rose-soft);border-radius:14px;padding:14px 18px}
+  .reason-list{padding-left:22px;font-size:15px;line-height:1.9}
+  .reason-list li{margin:4px 0}
+  .watch-list{padding-left:20px;font-size:14px;color:var(--gold2)}
+  .used{align-items:center}
+  .used-label{background:none!important;border:none!important;color:var(--muted)!important;padding-left:0!important}
+  .palace.focus{border:2px solid var(--btn-hover);background:var(--rose-soft)}
+  .palace em{display:block;font-style:normal;font-size:11px;color:var(--muted);margin-top:2px}
+  .pill-list span.cur{background:var(--btn);color:var(--btn-text);border-color:var(--btn-hover);font-weight:700}
+  @media(max-width:640px){ .hero{padding:48px 0 40px} .msg{max-width:95%} .chat-input{flex-direction:column;align-items:stretch} .res-head .btn{width:100%} }
+
+  /* ===== v5：粗標題 / 常見問題清單 / 系統用途 ===== */
+  h1,h2,h3{font-weight:900}
+  .hero h1{font-size:clamp(38px,8vw,62px);letter-spacing:4px}
+  .section-title{font-size:28px;font-weight:900}
+  .home-sec h2{font-size:28px;font-weight:900;letter-spacing:1px}
+  .res-head h2{font-size:28px;font-weight:900}
+  .card h3{font-size:21px;font-weight:900}
+  .step-label{font-size:20px;font-weight:900}
+  .sys .nm{font-size:21px;font-weight:900}
+  .rec-main{font-weight:900}
+  .pg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .pg{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 18px 12px;box-shadow:var(--shadow)}
+  .pg-h{display:flex;align-items:center;gap:10px;font-family:"Noto Serif TC",serif;font-weight:900;font-size:18px;margin-bottom:8px}
+  .pg-h .ic{width:32px;height:32px;border-radius:50%;background:var(--rose-soft);display:grid;place-items:center;font-size:15px}
+  .pg ul{list-style:none}
+  .pg li button{width:100%;text-align:left;background:none;border:none;border-top:1px dashed var(--line);padding:9px 4px 9px 18px;font-size:14px;color:var(--text);cursor:pointer;position:relative;line-height:1.6}
+  .pg li:first-child button{border-top:none}
+  .pg li button::before{content:"•";position:absolute;left:4px;color:var(--gold)}
+  .pg li button:hover{color:var(--gold);background:var(--rose-soft);border-radius:8px}
+  .sys .use{background:var(--bg2);border-radius:12px;padding:10px 12px;margin:0 0 12px;font-size:13px}
+  .sys .use b{display:block;color:var(--gold);margin-bottom:2px}
+  .sys .use ul{padding-left:16px;color:var(--text)}
+  .local-note{font-size:12px;color:var(--muted);margin-top:10px}
+
+  /* ===== v6：自我探索報告 ===== */
+  .card h3{font-family:"Noto Serif TC",serif}
+  .one-card{background:var(--btn);color:#fff;text-align:center;padding:30px 24px;border:none}
+  .one-card small{display:block;opacity:.85;font-size:13px;letter-spacing:2px;margin-bottom:8px}
+  .one-card p{font-family:"Noto Serif TC",serif;font-weight:900;font-size:clamp(20px,3.6vw,26px);line-height:1.6}
+  .rp-nav{position:sticky;top:0;z-index:5;display:flex;gap:6px;overflow-x:auto;padding:10px 0;background:var(--bg);scrollbar-width:none;margin-bottom:6px}
+  .rp-nav a{flex:none;font-size:13px;color:var(--text);text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px}
+  .rp-nav a:hover{border-color:var(--btn);color:var(--gold)}
+  .rp-sec{margin-top:16px;scroll-margin-top:60px}
+  .rp-sec h3{font-size:22px;margin-bottom:2px}
+  .rp-sub{color:var(--muted);font-size:13px;margin-bottom:14px}
+  .rp-item{border-top:1px solid var(--line);padding:16px 0}
+  .rp-item:first-of-type{border-top:none;padding-top:4px}
+  .rp-h{display:flex;align-items:center;gap:10px;font-weight:900;font-size:17px;margin-bottom:6px}
+  .rp-h i{font-style:normal;flex:none;width:26px;height:26px;border-radius:50%;background:var(--btn);color:#fff;display:grid;place-items:center;font-size:13px}
+  .rp-basis{display:inline-block;font-size:12px;color:var(--gold2);background:var(--rose-soft);border-radius:999px;padding:2px 10px;margin-bottom:8px}
+  .rp-row{display:grid;grid-template-columns:120px 1fr;gap:12px;padding:6px 0;font-size:15px}
+  .rp-row span{color:var(--gold);font-weight:700;font-size:14px}
+  @media(max-width:640px){ .rp-row{grid-template-columns:1fr;gap:2px} }
+  .rp-quote{background:var(--rose-soft);border-left:4px solid var(--btn);border-radius:12px;padding:14px 16px;margin-bottom:10px;font-size:16px;font-weight:700;line-height:1.8}
+  .rp-quote small{display:block;font-weight:400;font-size:12px;color:var(--muted);margin-top:4px}
+  .rp-manual{background:var(--bg2);border:1px dashed var(--btn);border-radius:14px;padding:14px 16px;margin-top:12px}
+  .rp-manual b{display:block;color:var(--gold);margin-bottom:4px}
+  .rp-list{padding-left:20px;font-size:15px}
+  .rp-list li{margin:3px 0}
+  .rp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:10px}
+  .rp-box{background:var(--bg2);border-radius:12px;padding:12px 14px;margin-top:8px}
+  .rp-box b{display:block;color:var(--gold);margin-bottom:2px;font-size:14px}
+  .rp-map{display:grid;gap:10px;margin-top:12px}
+  .rp-chain{display:flex;align-items:stretch;gap:6px;flex-wrap:wrap}
+  .rp-chain > div{flex:1;min-width:110px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:14px}
+  .rp-chain small{display:block;color:var(--gold);font-weight:700;font-size:12px}
+  .rp-chain .arrow{align-self:center;color:var(--btn);font-weight:900}
+  .rp-steps{padding-left:22px}
+  .rp-steps li{margin:10px 0}
+  .rp-steps b{font-size:16px}
+  .rp-steps p{font-size:14px;margin-top:2px}
+  .rp-steps p span{display:inline-block;color:var(--gold);font-weight:700;margin-right:8px;font-size:13px}
+  .final-words{margin-top:20px;text-align:center;padding:30px 20px;border-top:2px solid var(--btn);border-bottom:2px solid var(--btn)}
+  .final-words small{color:var(--muted);letter-spacing:2px}
+  .final-words p{font-family:"Noto Serif TC",serif;font-weight:900;font-size:22px;line-height:1.7;margin-top:8px;color:var(--gold2)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="logo" onclick="goPage('home')"><div class="logo-mark">運</div>流年運勢</div>
+    <button class="icon-btn" onclick="openSettings()">⚙ AI 設定</button>
+  </header>
+
+  <!-- ============ PAGE 1：首頁 ============ -->
+  <section id="page-home" class="page active">
+    <div class="hero">
+      <div class="badge">紫微斗數 · 八字 · 五行 · 生命靈數</div>
+      <h1>探索你的命盤</h1>
+      <p>從你現在的問題出發，找到最適合的命盤，<br>再一步步解析、延伸提問。</p>
+      <button class="btn btn-gold" onclick="goPage('form')">開始解析 →</button>
+    </div>
+
+    <div class="home-sec">
+      <h2>你是不是也遇到這些問題？</h2>
+      <p class="sub">點一個最像你的問題，就能直接開始解析</p>
+      <div class="pg-grid">
+        <div class="pg"><div class="pg-h"><span class="ic">💼</span>工作與職涯</div><ul><li><button type="button" data-cat="工作／事業" data-q="工作做得很累，不知道該不該轉職">工作做得很累，不知道該不該轉職</button></li><li><button type="button" data-cat="工作／事業" data-q="不確定自己適合什麼樣的工作">不確定自己適合什麼樣的工作</button></li><li><button type="button" data-cat="工作／事業" data-q="在公司一直沒被看見、升不上去">在公司一直沒被看見、升不上去</button></li><li><button type="button" data-cat="工作／事業" data-q="跟主管或同事處不來">跟主管或同事處不來</button></li><li><button type="button" data-cat="工作／事業" data-q="想換跑道，但怕放棄現在的穩定">想換跑道，但怕放棄現在的穩定</button></li></ul></div>
+        <div class="pg"><div class="pg-h"><span class="ic">💰</span>金錢與財運</div><ul><li><button type="button" data-cat="財務／金錢" data-q="薪水不少，但總是存不了錢">薪水不少，但總是存不了錢</button></li><li><button type="button" data-cat="財務／金錢" data-q="不知道自己適合穩定收入還是多元收入">不知道自己適合穩定收入還是多元收入</button></li><li><button type="button" data-cat="財務／金錢" data-q="常常衝動消費，事後後悔">常常衝動消費，事後後悔</button></li><li><button type="button" data-cat="財務／金錢" data-q="想讓收入變多，卻不知道從哪開始">想讓收入變多，卻不知道從哪開始</button></li><li><button type="button" data-cat="財務／金錢" data-q="對錢常有不安全感">對錢常有不安全感</button></li></ul></div>
+        <div class="pg"><div class="pg-h"><span class="ic">💗</span>感情與婚姻</div><ul><li><button type="button" data-cat="感情／關係" data-q="感情總是遇到類似的問題">感情總是遇到類似的問題</button></li><li><button type="button" data-cat="感情／關係" data-q="單身很久，不知道問題出在哪">單身很久，不知道問題出在哪</button></li><li><button type="button" data-cat="感情／關係" data-q="在關係裡常常委屈自己">在關係裡常常委屈自己</button></li><li><button type="button" data-cat="感情／關係" data-q="跟另一半溝通常卡住、吵架">跟另一半溝通常卡住、吵架</button></li><li><button type="button" data-cat="感情／關係" data-q="正在猶豫要不要繼續這段關係">正在猶豫要不要繼續這段關係</button></li></ul></div>
+        <div class="pg"><div class="pg-h"><span class="ic">🤝</span>人際與家庭</div><ul><li><button type="button" data-cat="人際／家庭" data-q="很在意別人的看法，人際讓我很累">很在意別人的看法，人際讓我很累</button></li><li><button type="button" data-cat="人際／家庭" data-q="跟家人價值觀不同、常有摩擦">跟家人價值觀不同、常有摩擦</button></li><li><button type="button" data-cat="人際／家庭" data-q="總是當好人，卻覺得被利用">總是當好人，卻覺得被利用</button></li><li><button type="button" data-cat="人際／家庭" data-q="不知道怎麼拒絕別人">不知道怎麼拒絕別人</button></li><li><button type="button" data-cat="人際／家庭" data-q="朋友圈變化大，覺得孤單">朋友圈變化大，覺得孤單</button></li></ul></div>
+        <div class="pg"><div class="pg-h"><span class="ic">🌱</span>副業與創業</div><ul><li><button type="button" data-cat="副業／創業" data-q="想開始副業，但不知道做什麼">想開始副業，但不知道做什麼</button></li><li><button type="button" data-cat="副業／創業" data-q="不確定自己的興趣能不能變現">不確定自己的興趣能不能變現</button></li><li><button type="button" data-cat="副業／創業" data-q="想創業，但怕失敗">想創業，但怕失敗</button></li><li><button type="button" data-cat="副業／創業" data-q="時間不夠，不知道怎麼兼顧本業">時間不夠，不知道怎麼兼顧本業</button></li><li><button type="button" data-cat="副業／創業" data-q="經營自媒體一直沒有起色">經營自媒體一直沒有起色</button></li></ul></div>
+        <div class="pg"><div class="pg-h"><span class="ic">🔮</span>自我探索</div><ul><li><button type="button" data-cat="認識自己" data-q="常常迷惘，不知道自己要什麼">常常迷惘，不知道自己要什麼</button></li><li><button type="button" data-cat="認識自己" data-q="覺得自己卡住了、沒有動力">覺得自己卡住了、沒有動力</button></li><li><button type="button" data-cat="認識自己" data-q="想知道自己的天賦和優勢">想知道自己的天賦和優勢</button></li><li><button type="button" data-cat="認識自己" data-q="容易焦慮、想太多">容易焦慮、想太多</button></li><li><button type="button" data-cat="認識自己" data-q="想更了解自己的個性">想更了解自己的個性</button></li></ul></div>
+        <div class="pg"><div class="pg-h"><span class="ic">🗓</span>2026、2027 流年</div><ul><li><button type="button" data-cat="2026 流年" data-q="2026 年整體運勢如何？">2026 年整體運勢如何？</button></li><li><button type="button" data-cat="2026 流年" data-q="今年適合做重大決定嗎？">今年適合做重大決定嗎？</button></li><li><button type="button" data-cat="2026 流年" data-q="今年下半年要注意什麼？">今年下半年要注意什麼？</button></li><li><button type="button" data-cat="2027 流年" data-q="2027 年適合轉換跑道嗎？">2027 年適合轉換跑道嗎？</button></li><li><button type="button" data-cat="2027 流年" data-q="明年該提早準備什麼？">明年該提早準備什麼？</button></li></ul></div>
+      </div>
+    </div>
+
+    <div class="home-sec">
+      <h2>四大命理系統，各自能看什麼？</h2>
+      <p class="sub">系統會依照你的問題，推薦最適合的命盤</p>
+      <div class="sys-grid">
+        <div class="sys"><div class="nm">紫微斗數</div><div class="en">十二宮位 · 十四主星</div><div class="good">把人生分成十二個宮位，像一張「人生地圖」，最適合深入看某一個領域。</div>
+          <div class="use"><b>適合問</b><ul><li>我適合什麼工作型態？</li><li>我在感情裡的需求是什麼？</li><li>我的賺錢與花錢方式？</li></ul></div><span class="need">需要：生日＋出生時間</span></div>
+        <div class="sys"><div class="nm">八字</div><div class="en">四柱 · 十神 · 大運流年</div><div class="good">用出生的年月日時排出八個字，看性格底色與人生的時間節奏。</div>
+          <div class="use"><b>適合問</b><ul><li>現在是行動還是等待的時機？</li><li>這幾年的大運走向？</li><li>今年、明年的流年運勢？</li></ul></div><span class="need">需要：生日＋出生時間</span></div>
+        <div class="sys"><div class="nm">五行</div><div class="en">木 · 火 · 土 · 金 · 水</div><div class="good">看命盤中五種能量的多寡與平衡，了解個性傾向與生活中可以調整的方向。</div>
+          <div class="use"><b>適合問</b><ul><li>我的個性偏向哪一種能量？</li><li>我缺什麼、該補什麼？</li><li>適合我的環境與產業屬性？</li></ul></div><span class="need">需要：生日（有時間更完整）</span></div>
+        <div class="sys"><div class="nm">生命靈數</div><div class="en">西方數字學</div><div class="good">只要生日就能計算，從數字看天賦、人生課題與每年的主題。</div>
+          <div class="use"><b>適合問</b><ul><li>我的天賦和優勢是什麼？</li><li>我的人生課題？</li><li>今年的流年主題是什麼？</li></ul></div><span class="need">需要：生日即可</span></div>
+      </div>
+    </div>
+
+    <div class="home-sec">
+      <h2>解析流程</h2>
+      <p class="sub">三個步驟，從問題出發</p>
+      <div class="flow">
+        <div><i>1</i><b>說出你的問題</b><span>選擇主題，也可以寫下具體困擾</span></div>
+        <div><i>2</i><b>命盤分析</b><span>依問題配對最適合的命盤，給出結論、理由與行動建議</span></div>
+        <div><i>3</i><b>延伸提問</b><span>看完分析後，還能針對同一份命盤繼續追問</span></div>
+      </div>
+      <div style="text-align:center;margin-top:28px"><button class="btn btn-gold" onclick="goPage('form')">開始解析 →</button></div>
+    </div>
+  </section>
+
+  <!-- ============ PAGE 2：資料輸入 ============ -->
+  <section id="page-form" class="page">
+    <h2 class="section-title">開始你的命盤解析</h2>
+    <p class="section-sub">資料僅在你的瀏覽器中處理，送出後會整理成 JSON 並交給 AI 分析。</p>
+
+    <div class="card">
+      <div class="step-label"><i>1</i>你現在最想解決的問題</div>
+      <div class="field">
+        <label>選擇主題</label>
+        <div class="chips" id="catChips"></div>
+      </div>
+      <div class="field" style="margin-top:14px">
+        <label>具體描述你的困擾（選填，寫得越清楚，回答越貼近你）</label>
+        <textarea id="question" maxlength="300" placeholder="例如：我在現在的公司做了三年，最近一直想轉職，但不確定要不要離開穩定的工作……"></textarea>
+      </div>
+      <div class="rec" id="recBox"></div>
+    </div>
+
+    <div class="card">
+      <div class="step-label"><i>2</i>填寫出生資料</div>
+      <div class="grid2">
+        <div class="field" id="f-name">
+          <label>姓名 <span class="req">*</span></label>
+          <input id="name" type="text" placeholder="例如：王小明" maxlength="30">
+          <div class="msg">請輸入姓名</div>
+        </div>
+        <div class="field" id="f-gender">
+          <label>性別</label>
+          <select id="gender">
+            <option value="男">男</option>
+            <option value="女">女</option>
+            <option value="不提供" selected>不提供</option>
+          </select>
+        </div>
+        <div class="field" id="f-birthDate">
+          <label>出生日期 <span class="req">*</span></label>
+          <input id="birthDate" type="date" min="1900-01-01" max="2100-12-31">
+          <div class="hint">格式：YYYY-MM-DD（國曆）</div>
+          <div class="msg">請輸入正確的出生日期（YYYY-MM-DD）</div>
+        </div>
+        <div class="field" id="f-birthTime">
+          <label>出生時間 <span class="req" id="timeReq">*</span></label>
+          <input id="birthTime" type="time">
+          <label class="check"><input type="checkbox" id="timeUnknown"> 我不知道確切出生時間</label>
+          <div class="msg">請輸入正確的出生時間（HH:mm），或勾選「不知道」</div>
+        </div>
+        <div class="field" id="f-birthPlace" style="grid-column:1/-1">
+          <label>出生地 <span class="req">*</span></label>
+          <input id="birthPlace" type="text" placeholder="例如：台灣 台北市" maxlength="60">
+          <div class="msg">請輸入出生地</div>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>目前的工作／身分（選填）</label>
+          <input id="occupation" type="text" maxlength="60" placeholder="例如：行銷企劃、自由接案、學生、全職媽媽">
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>最近的生活狀態（選填，寫得越真實，分析越貼近你）</label>
+          <textarea id="currentState" maxlength="300" placeholder="例如：剛換工作半年、單身、下班後在經營副業、最近常覺得卡住……"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="step-label"><i>3</i>確認要使用的命盤</div>
+      <p class="kv">已依你的問題預先勾選推薦的命盤，你也可以自行加選。</p>
+      <div class="sys-pick" id="sysPick"></div>
+      <div class="notice">命盤由程式實際排盤：<b>八字、五行</b>使用開源萬年曆 lunar-javascript，<b>紫微斗數</b>使用開源排盤 iztro，<b>生命靈數</b>依公式計算。出生時間以你填寫的當地時間計算（未換算真太陽時）。解析內容為傳統文化與娛樂性參考。</div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="goPage('home')">返回</button>
+        <button class="btn btn-ghost" onclick="fillDemo()">填入範例</button>
+        <button class="btn btn-gold" id="submitBtn" onclick="handleSubmit()">開始解析</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PAGE 3：分析中 ============ -->
+  <section id="page-loading" class="page">
+    <div class="loading">
+      <div class="orb"></div>
+      <h2 class="section-title" style="margin:0">命盤解析中…</h2>
+      <ul class="steps" id="steps">
+        <li data-s="1">整理出生資料與問題</li>
+        <li data-s="2">建立命盤 JSON</li>
+        <li data-s="3">產生 AI Prompt</li>
+        <li data-s="4">AI 分析中（約 30-60 秒）</li>
+        <li data-s="5">整理報告</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ PAGE 4：結果頁 ============ -->
+  <section id="page-result" class="page">
+    <div class="res-head">
+      <div>
+        <h2 id="r-title">命盤報告</h2>
+        <div class="meta" id="r-meta"></div>
+      </div>
+      <button class="btn btn-ghost" style="padding:10px 20px" onclick="goPage('form')">換個問題</button>
+    </div>
+
+    <div id="r-mockBanner" class="mock-banner" style="display:none"></div>
+
+    <!-- 一句話看懂 -->
+    <div class="card one-card" id="r-oneCard">
+      <small>我的命盤，一句話看懂</small>
+      <p id="r-oneLiner"></p>
+    </div>
+
+    <!-- 針對問題的解答 -->
+    <div class="card qa-card" id="r-qaCard" style="margin-top:16px">
+      <h3>針對你現在的問題</h3>
+      <div class="qa-q" id="r-question"></div>
+      <div class="qa-a" id="r-answer"></div>
+      <div class="kv" style="margin-bottom:6px">現在就可以做的事</div>
+      <ul class="actions-list" id="r-actions"></ul>
+      <div id="r-watch"></div>
+      <div class="used" id="r-used"></div>
+    </div>
+
+    <!-- 命盤資料 -->
+    <div class="card" style="margin-top:16px">
+      <h3>我的命盤資料</h3>
+      <div class="sys-tabs" id="r-sysTabs"></div>
+      <div id="r-sysPanels"></div>
+    </div>
+
+    <!-- 自我探索報告 -->
+    <div id="r-raw" style="display:none;margin-top:20px"></div>
+    <div id="r-report" style="margin-top:24px">
+      <nav class="rp-nav" id="r-nav"></nav>
+      <div id="r-sections"></div>
+    </div>
+
+    <!-- 管理者檢查用（網址加 ?admin=1 才顯示） -->
+    <div class="card" id="adminCard" style="margin-top:16px">
+      <h3>管理者檢查</h3>
+      <div class="tabs" id="tabs">
+        <button class="tab on" data-tab="json">命盤 JSON</button>
+        <button class="tab" data-tab="prompt">AI Prompt</button>
+        <button class="tab" data-tab="rawres">AI 原始回應</button>
+      </div>
+      <div class="tab-panel on" id="tp-json"><pre class="code" id="r-json"></pre></div>
+      <div class="tab-panel" id="tp-prompt"><pre class="code" id="r-prompt"></pre></div>
+      <div class="tab-panel" id="tp-rawres"><pre class="code" id="r-rawres"></pre></div>
+    </div>
+
+    <!-- 延伸提問 -->
+    <div class="card chat-card" id="chatCard">
+      <h3>延伸提問</h3>
+      <p class="kv">針對你的命盤繼續問，AI 會根據同一份命盤資料與剛才的報告回答。</p>
+      <div class="chat-log" id="chatLog"><div class="chat-empty">還沒有提問，試試下面的問題 👇</div></div>
+      <div class="suggest" id="suggest"></div>
+      <div class="chat-input">
+        <textarea id="chatInput" maxlength="300" placeholder="例如：那我今年適合轉職嗎？要注意什麼？"></textarea>
+        <button class="btn btn-gold" id="chatSend" onclick="sendFollowUp()">送出</button>
+      </div>
+      <div class="hint kv" style="font-size:12px;margin-top:6px">Enter 送出、Shift+Enter 換行</div>
+    </div>
+
+    <p class="disclaimer" id="r-disclaimer"></p>
+    <div class="res-actions">
+      <button class="btn btn-ghost" onclick="goPage('form')">修改資料</button>
+      <button class="btn btn-ghost" onclick="copyText(JSON.stringify({report:state.lastResult,followUps:state.chat},null,2),'已複製報告 JSON')">複製報告 JSON</button>
+      <button class="btn btn-gold" onclick="resetAll()">重新開始</button>
+    </div>
+  </section>
+
+  <footer>流年運勢 · 內容為傳統文化與娛樂性參考，不構成醫療、法律或投資建議</footer>
+</div>
+
+<!-- ============ AI 設定 Modal ============ -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <h3>AI 設定</h3>
+    <p class="kv">選擇 AI 服務。未設定 API Key 時可使用「模擬 AI」測試完整流程。</p>
+    <div class="field">
+      <label>AI 服務</label>
+      <select id="s-provider" onchange="onProviderChange()">
+        <option value="proxy">後端代理（正式上線用，Key 在 Netlify）</option>
+        <option value="local">內建解讀（不使用 AI）</option>
+        <option value="mock">模擬 AI（不呼叫 API，測試用）</option>
+        <option value="anthropic">Anthropic Claude（前端直連，僅自己測試）</option>
+        <option value="openai">OpenAI（前端直連，僅自己測試）</option>
+      </select>
+    </div>
+    <div class="field" id="s-keyWrap">
+      <label>API Key</label>
+      <input id="s-key" type="password" placeholder="貼上你的 API Key" autocomplete="off">
+      <div class="hint">⚠ 前端直接呼叫 API 會讓 Key 暴露在瀏覽器中，僅適合個人測試。正式上線請改由後端代理（見程式碼註解）。</div>
+    </div>
+    <div class="field" id="s-modelWrap">
+      <label>模型名稱</label>
+      <input id="s-model" type="text">
+    </div>
+    <div class="field" id="s-endpointWrap">
+      <label>API Endpoint</label>
+      <input id="s-endpoint" type="text">
+    </div>
+    <div class="field" id="s-rememberWrap">
+      <label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input id="s-remember" type="checkbox" style="width:auto"> 在此瀏覽器記住設定（含 API Key）</label>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeSettings()">取消</button>
+      <button class="btn btn-gold" onclick="saveSettings()">儲存</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+/* =========================================================
+   常數 & 全域狀態
+   ========================================================= */
+const CURRENT_YEAR = 2026;
+
+/* 四大命理系統 */
+const SYSTEMS = {
+  ziwei:      { name:"紫微斗數", needTime:true,  desc:"十二宮位看各領域細節" },
+  bazi:       { name:"八字",     needTime:true,  desc:"四柱十神看性格與時機" },
+  wuxing:     { name:"五行",     needTime:false, desc:"能量平衡與調整方向" },
+  numerology: { name:"生命靈數", needTime:false, desc:"只需生日，看天賦課題" }
+};
+const SYSTEM_ORDER = ["ziwei","bazi","wuxing","numerology"];
+
+/* 問題主題 → 分析類型 + 推薦命盤（依適合度排序）
+   規則式推薦：之後可改成由 AI 或後端判斷 */
+const CATEGORIES = {
+  "工作／事業": { type:"事業", rank:["ziwei","bazi","wuxing"],
+    why:{ ziwei:"紫微的「官祿宮」專門看工作型態與職涯格局，最適合回答事業方向的具體問題。",
+          bazi:"八字的十神結構能看出你的工作模式，大運則能看出適合行動的時間點。",
+          wuxing:"五行偏重可以補充你適合的工作環境與節奏。" } },
+  "財務／金錢": { type:"財運", rank:["bazi","ziwei","numerology"],
+    why:{ bazi:"八字的「財星」與大運流年，最能看出你的財務性格與金錢節奏。",
+          ziwei:"紫微的「財帛宮」可以細看收入模式與花錢習慣。",
+          numerology:"生命靈數可以補充你對金錢的價值觀與天賦變現方式。" } },
+  "感情／關係": { type:"感情", rank:["ziwei","numerology","bazi"],
+    why:{ ziwei:"紫微的「夫妻宮」能細看你在關係中的需求與互動模式，最適合感情問題。",
+          numerology:"生命靈數能看出你的溝通風格與在關係中的課題。",
+          bazi:"八字可以補充你在感情中的性格底色。" } },
+  "人際／家庭": { type:"人際", rank:["ziwei","numerology","bazi"],
+    why:{ ziwei:"紫微的「僕役宮」看朋友同事、「父母宮」看長輩與上司、「兄弟宮」看同輩，最適合細看人際與家庭關係。",
+          numerology:"生命靈數能看出你在人際中的溝通方式與界線課題。",
+          bazi:"八字的比肩劫財（同輩）與印星（長輩）可以補充你和不同對象的互動模式。" } },
+  "副業／創業": { type:"副業", rank:["numerology","bazi","wuxing"],
+    why:{ numerology:"生命靈數著重天賦與才能，最適合找出你能延伸成副業的方向。",
+          bazi:"八字的食傷、財星能看出你把才華變現的方式與時機。",
+          wuxing:"五行可以補充適合你的產業屬性與工作節奏。" } },
+  "認識自己": { type:"綜合命盤", rank:["numerology","wuxing","bazi"],
+    why:{ numerology:"生命靈數門檻最低、只要生日，很適合用來快速認識自己的天賦與課題。",
+          wuxing:"五行能看出你性格中偏重與不足的能量。",
+          bazi:"八字能補充更完整的性格輪廓。" } },
+  "2026 流年": { type:"2026 流年", rank:["bazi","ziwei","numerology"],
+    why:{ bazi:"八字的「流年干支」搭配大運，是看年度運勢最常用的方法。",
+          ziwei:"紫微的流年四化可以細看各領域的年度變化。",
+          numerology:"生命靈數的「流年數」能補充年度主題。" } },
+  "2027 流年": { type:"2027 流年", rank:["bazi","ziwei","numerology"],
+    why:{ bazi:"八字的「流年干支」搭配大運，是看年度運勢最常用的方法。",
+          ziwei:"紫微的流年四化可以細看各領域的年度變化。",
+          numerology:"生命靈數的「流年數」能補充年度主題。" } }
+};
+/* 沒有出生時間時，各主題改推「五行／生命靈數」的理由（針對問題說明，而不是泛泛而談） */
+const NO_TIME_WHY = {
+  "工作／事業": { numerology:"沒有出生時間時，生命靈數最可靠：主命數能看出你的天賦與適合的工作型態，流年數能看今年的職涯節奏。", wuxing:"五行可用年、月、日六字看出你偏重的能量，對應適合的工作環境。" },
+  "財務／金錢": { numerology:"生命靈數只需要生日，能看出你的金錢觀與今年適合開源或守成。", wuxing:"五行偏重可以看出你花錢、存錢的慣性。" },
+  "感情／關係": { numerology:"生命靈數只需要生日，能看出你在關係中的需求與溝通課題。", wuxing:"五行偏重可以補充你在互動中的情緒節奏。" },
+  "人際／家庭": { numerology:"生命靈數只需要生日，能看出你在人際中的溝通方式與界線課題。", wuxing:"五行偏重可以看出你和人互動時的節奏與能量。" },
+  "副業／創業": { numerology:"生命靈數著重天賦與才能，最適合找出能延伸成副業的方向。", wuxing:"五行可以補充適合你的產業屬性。" },
+  "認識自己":   { numerology:"生命靈數只需要生日，最適合快速認識自己的天賦與課題。", wuxing:"五行能看出你性格中偏重與不足的能量。" },
+  "2026 流年":  { numerology:"生命靈數的 2026 流年數只需要生日就能算，適合看今年主題。", wuxing:"五行可以看流年能量和你命局的互動。" },
+  "2027 流年":  { numerology:"生命靈數的 2027 流年數只需要生日就能算，適合看明年主題。", wuxing:"五行可以看流年能量和你命局的互動。" }
+};
+
+/* 沒選主題時，用關鍵字從文字推測 */
+const KEYWORDS = [
+  ["工作／事業", /工作|轉職|離職|職涯|老闆|主管|同事|升遷|面試|事業|公司|上班/],
+  ["財務／金錢", /錢|財|存款|收入|薪水|負債|投資|理財|花費|賺/],
+  ["感情／關係", /感情|戀愛|男友|女友|伴侶|老公|老婆|結婚|分手|曖昧|桃花|復合|關係/],
+  ["副業／創業", /副業|創業|接案|斜槓|開店|自媒體|品牌/],
+  ["人際／家庭", /人際|朋友|家人|父母|媽媽|爸爸|兄弟|姊妹|婆媳|拒絕|別人的看法/],
+  ["2027 流年", /2027|明年/],
+  ["2026 流年", /2026|今年|流年/]
+];
+
+/* =========================================================
+   ★ AI 連線設定（上線前只需要看這裡）
+   - "proxy"：正式模式。呼叫自己網站的後端（Netlify Function），API Key 存在後端，訪客看不到
+   - "mock" ：模擬 AI，不花錢，用來測介面
+   - "anthropic" / "openai"：前端直連，只給你自己測試用（需在網址加 ?admin=1 才看得到設定）
+   ========================================================= */
+const AI_MODE_DEFAULT = "proxy";
+const PROXY_ENDPOINT = "/api/ai";     // netlify.toml 會把 /api/ai 轉到 /.netlify/functions/ai
+const PROXY_FALLBACK = "/.netlify/functions/ai";   // 轉址沒生效時的備用路徑
+const IS_ADMIN = new URLSearchParams(location.search).has("admin");
+const IS_LOCAL_FILE = location.protocol === "file:";
+
+const PROVIDER_DEFAULTS = {
+  proxy:     { model:"(由後端決定)", endpoint:PROXY_ENDPOINT },
+  local:     { model:"內建解讀", endpoint:"" },
+  mock:      { model:"mock-ai", endpoint:"" },
+  anthropic: { model:"claude-sonnet-5-5", endpoint:"https://api.anthropic.com/v1/messages" },
+  openai:    { model:"gpt-4o-mini", endpoint:"https://api.openai.com/v1/chat/completions" }
+};
+
+const state = {
+  category: "",            // 使用者選的主題
+  systems: [],             // 使用者勾選的命盤
+  systemsTouched: false,   // 使用者是否手動改過勾選
+  lastPayload: null,
+  lastPrompt: "",
+  lastRawResponse: "",
+  lastResult: null,
+  chat: [],                // 延伸提問紀錄 [{role:"user"|"ai", text, data?}]
+  chatBusy: false,
+  settings: { provider:AI_MODE_DEFAULT, apiKey:"", model:"", endpoint:"", remember:false }
+};
+
+/* =========================================================
+   設定讀寫（localStorage 皆包 try/catch）
+   ========================================================= */
+const SETTINGS_KEY = "aiDestinyChart.settings";
+function loadSettings(){
+  // 只有管理者（?admin=1）才會讀取自訂設定；一般訪客永遠走後端代理
+  if(IS_ADMIN){ try{ const raw = localStorage.getItem(SETTINGS_KEY); if(raw) Object.assign(state.settings, JSON.parse(raw)); }catch(e){} }
+  // 直接用檔案開啟（file://）時沒有後端可用 → 自動改用模擬 AI 方便預覽
+  if(IS_LOCAL_FILE && state.settings.provider === "proxy") state.settings.provider = "local";
+}
+function persistSettings(){
+  try{ if(state.settings.remember) localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings)); else localStorage.removeItem(SETTINGS_KEY); }catch(e){}
+}
+function openSettings(){
+  const s = state.settings;
+  $("#s-provider").value = s.provider;
+  $("#s-key").value = s.apiKey;
+  $("#s-model").value = s.model;
+  $("#s-endpoint").value = s.endpoint || PROVIDER_DEFAULTS[s.provider].endpoint;
+  $("#s-remember").checked = !!s.remember;
+  toggleSettingFields();
+  $("#settingsModal").classList.add("on");
+}
+function closeSettings(){ $("#settingsModal").classList.remove("on"); }
+function onProviderChange(){
+  const p = $("#s-provider").value;
+  $("#s-model").value = PROVIDER_DEFAULTS[p].model;
+  $("#s-endpoint").value = PROVIDER_DEFAULTS[p].endpoint;
+  toggleSettingFields();
+}
+function toggleSettingFields(){
+  const p = $("#s-provider").value, direct = p==="anthropic" || p==="openai";
+  ["#s-keyWrap","#s-modelWrap","#s-endpointWrap","#s-rememberWrap"].forEach(id=>$(id).style.display = direct?"block":"none");
+}
+function saveSettings(){
+  const p = $("#s-provider").value;
+  state.settings = {
+    provider:p, apiKey:$("#s-key").value.trim(),
+    model:$("#s-model").value.trim() || PROVIDER_DEFAULTS[p].model,
+    endpoint:$("#s-endpoint").value.trim() || PROVIDER_DEFAULTS[p].endpoint,
+    remember:$("#s-remember").checked
+  };
+  persistSettings(); closeSettings();
+  toast("AI 設定已儲存：" + $("#s-provider").selectedOptions[0].text);
+}
+
+/* =========================================================
+   工具函式
+   ========================================================= */
+function $(sel){ return document.querySelector(sel); }
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("on"),2200); }
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function arr(x){ return Array.isArray(x) ? x : []; }
+function goPage(name){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  $("#page-"+name).classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+async function copyText(text,msg){ try{ await navigator.clipboard.writeText(text); toast(msg||"已複製"); }catch(e){ toast("複製失敗，請手動選取"); } }
+function setStep(n){
+  document.querySelectorAll("#steps li").forEach(li=>{
+    const s=+li.dataset.s; const base = li.textContent.replace(/^[✓•] /,"");
+    li.className = s<n?"done":(s===n?"now":"");
+    li.textContent = (s<n?"✓ ":s===n?"• ":"") + base;
+  });
+}
+
+/* =========================================================
+   1. 問題 → 推薦命盤
+   ========================================================= */
+function timeUnknown(){ return $("#timeUnknown").checked; }
+
+function inferCategory(text){
+  for(const [cat,re] of KEYWORDS){ if(re.test(text)) return cat; }
+  return "";
+}
+function currentCategory(){
+  return state.category || inferCategory($("#question").value) || "認識自己";
+}
+
+/* 回傳 { category, primary, ranked:[{key,why}], note } */
+function recommendSystems(){
+  const cat = currentCategory();
+  const conf = CATEGORIES[cat];
+  let ranked = conf.rank.map(k=>({ key:k, why:conf.why[k] }));
+  let note = "";
+  if(timeUnknown()){
+    ranked = ranked.filter(r=>!SYSTEMS[r.key].needTime);
+    const nt = NO_TIME_WHY[cat];
+    ranked = [{ key:"numerology", why:nt.numerology }, { key:"wuxing", why:nt.wuxing }];
+    note = "因為沒有確切出生時間，改推薦不需要時辰的命盤；紫微斗數與八字需要出生時間才能準確排盤。";
+  }
+  return { category:cat, primary:ranked[0].key, ranked, note };
+}
+
+function renderRecommendation(){
+  const rec = recommendSystems();
+  const p = rec.ranked[0];
+  const inferred = !state.category && $("#question").value.trim() ? "（依你的描述判斷）" : (!state.category ? "（尚未選擇主題，先以「認識自己」推薦）" : "");
+  $("#recBox").innerHTML = `
+    <div class="rec-top">你的問題主題：<b>${esc(rec.category)}</b> ${inferred}</div>
+    <div class="rec-main">最適合你的命盤：<em>${esc(SYSTEMS[p.key].name)}</em></div>
+    <div class="rec-why">${esc(p.why)}</div>
+    ${rec.ranked[1] ? `<div class="rec-why" style="margin-top:6px;color:var(--muted)">搭配參考：${rec.ranked.slice(1).map(r=>esc(SYSTEMS[r.key].name)).join("、")}</div>` : ""}
+    ${rec.note ? `<div class="rec-note">※ ${esc(rec.note)}</div>` : ""}`;
+  // 使用者還沒手動改過勾選 → 自動勾推薦的前兩個
+  if(!state.systemsTouched) state.systems = rec.ranked.slice(0,2).map(r=>r.key);
+  // 沒時間時，移除需要時辰的系統
+  if(timeUnknown()) state.systems = state.systems.filter(k=>!SYSTEMS[k].needTime);
+  if(!state.systems.length) state.systems = [rec.primary];
+  renderSysPick(rec);
+}
+
+function renderSysPick(rec){
+  rec = rec || recommendSystems();
+  $("#sysPick").innerHTML = SYSTEM_ORDER.map(k=>{
+    const on = state.systems.includes(k);
+    const dis = timeUnknown() && SYSTEMS[k].needTime;
+    const star = k===rec.primary ? `<span class="star">最推薦</span>` : (rec.ranked.find(r=>r.key===k) ? `<span class="star" style="background:#fff;color:var(--gold);border:1px solid var(--gold)">推薦</span>` : "");
+    return `<div class="sp ${on?"on":""} ${dis?"dis":""}" data-sys="${k}">
+      <div class="box-ck">${on?"✓":""}</div>
+      <div><b>${SYSTEMS[k].name}${star}</b><small>${dis ? "需要出生時間" : SYSTEMS[k].desc}</small></div></div>`;
+  }).join("");
+}
+
+function renderCatChips(){
+  $("#catChips").innerHTML = Object.keys(CATEGORIES).map(c=>`<button type="button" class="chip ${c===state.category?"on":""}" data-cat="${c}">${c}</button>`).join("");
+}
+
+/* =========================================================
+   2. 收集與驗證使用者輸入
+   ========================================================= */
+function collectUserInput(){
+  const unknown = timeUnknown();
+  return {
+    name: $("#name").value.trim(),
+    birthDate: $("#birthDate").value,
+    birthTime: unknown ? "" : $("#birthTime").value,
+    birthTimeKnown: !unknown,
+    birthPlace: $("#birthPlace").value.trim(),
+    gender: $("#gender").value,
+    profile:{
+      age: calcAge($("#birthDate").value),
+      occupation: $("#occupation").value.trim(),
+      currentState: $("#currentState").value.trim()
+    }
+  };
+}
+function calcAge(dateStr){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
+  const [y,m,d] = dateStr.split("-").map(Number), t = new Date();
+  let age = t.getFullYear() - y; if(t.getMonth()+1 < m || (t.getMonth()+1 === m && t.getDate() < d)) age--;
+  return age >= 0 && age < 130 ? age : null;
+}
+function validateInput(u){
+  const errors = {};
+  if(!u.name) errors.name = true;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(u.birthDate) || isNaN(new Date(u.birthDate).getTime())) errors.birthDate = true;
+  if(u.birthTimeKnown && !/^([01]\d|2[0-3]):[0-5]\d$/.test(u.birthTime)) errors.birthTime = true;
+  if(!u.birthPlace) errors.birthPlace = true;
+  ["name","birthDate","birthTime","birthPlace"].forEach(k=>$("#f-"+k).classList.toggle("err",!!errors[k]));
+  if(Object.keys(errors).length){ $("#f-"+Object.keys(errors)[0]).scrollIntoView({behavior:"smooth",block:"center"}); }
+  return Object.keys(errors).length === 0;
+}
+
+/* =========================================================
+   3. 命盤資料計算（真實排盤）
+   ---------------------------------------------------------
+   八字／五行：lunar-javascript（6tail，開源萬年曆）
+   紫微斗數：iztro（開源紫微斗數排盤）
+   生命靈數：本程式依常見公式計算
+   ⚠ 若 CDN 套件載入失敗，會自動退回「模擬資料」並清楚標示 dataSource:"mock"
+   ⚠ 目前未依出生地換算「真太陽時」，出生時間以使用者輸入的當地鐘錶時間計算
+   ========================================================= */
+function libsReady(){
+  return { lunar: typeof Solar !== "undefined" && !!Solar.fromYmdHms, ziwei: typeof iztro !== "undefined" && !!iztro.astro };
+}
+
+/* lunar-javascript 部分輸出為簡體字，轉成繁體 */
+const S2T = { "财":"財","伤":"傷","杀":"殺","腊":"臘","闰":"閏" };
+function toTW(str){ return String(str||"").replace(/[财伤杀腊闰]/g, c=>S2T[c]||c); }
+
+async function getChartData(user, systems){
+  const chart = { currentYear: CURRENT_YEAR };
+  const ready = libsReady();
+  const rng = makeRng(user);
+  const [y,m,d] = user.birthDate.split("-").map(Number);
+  const [hh,mi] = user.birthTimeKnown ? user.birthTime.split(":").map(Number) : [12,0];
+
+  if(systems.includes("bazi") || systems.includes("wuxing")){
+    let bazi = null;
+    if(ready.lunar){
+      try{ bazi = calcBazi(user, y,m,d,hh,mi); }catch(e){ console.error("八字計算失敗", e); }
+    }
+    if(!bazi) bazi = mockBazi(rng, user);
+    if(systems.includes("bazi")) chart.bazi = bazi.public;
+    if(systems.includes("wuxing")) chart.wuxing = bazi.wuxing;
+  }
+  if(systems.includes("ziwei")){
+    let z = null;
+    if(ready.ziwei && user.birthTimeKnown){
+      try{ z = calcZiwei(user, y,m,d,hh); }catch(e){ console.error("紫微計算失敗", e); }
+    }
+    chart.ziwei = z || mockZiwei(rng);
+  }
+  if(systems.includes("numerology")) chart.numerology = calcNumerology(user.birthDate, CURRENT_YEAR);
+  return chart;
+}
+
+/* ✓ 真實八字（含五行統計） */
+function calcBazi(user, y,m,d,hh,mi){
+  const lunar = Solar.fromYmdHms(y,m,d,hh,mi,0).getLunar();
+  const ec = lunar.getEightChar();
+  const known = user.birthTimeKnown;
+  const pillars = { yearPillar:ec.getYear(), monthPillar:ec.getMonth(), dayPillar:ec.getDay(), hourPillar: known ? ec.getTime() : "" };
+  const tenGods = {
+    yearStem: toTW(ec.getYearShiShenGan()), monthStem: toTW(ec.getMonthShiShenGan()), dayStem:"日主",
+    hourStem: known ? toTW(ec.getTimeShiShenGan()) : "",
+    dayBranchHidden: ec.getDayShiShenZhi().map(toTW)
+  };
+  // 大運：需要性別決定順逆排
+  let luckCycles = [], luckNote = "";
+  if(user.gender === "男" || user.gender === "女"){
+    const yun = ec.getYun(user.gender === "男" ? 1 : 0);
+    luckCycles = yun.getDaYun().filter(dy=>dy.getGanZhi()).slice(0,8)
+      .map(dy=>({ ageRange:`${dy.getStartAge()}-${dy.getEndAge()}`, years:`${dy.getStartYear()}-${dy.getEndYear()}`, pillar:dy.getGanZhi() }));
+  }else{
+    luckNote = "未提供性別，無法排大運（大運順逆依性別而定）";
+  }
+  const cur = luckCycles.find(l=>{ const [a,b]=l.years.split("-").map(Number); return CURRENT_YEAR>=a && CURRENT_YEAR<=b; });
+  const yearGZ = yr => Solar.fromYmd(yr,7,1).getLunar().getYearInGanZhi();
+  // 五行：以八字天干地支「表面五行」計數（未計藏干）
+  const wxStr = [ec.getYearWuXing(), ec.getMonthWuXing(), ec.getDayWuXing()].concat(known ? [ec.getTimeWuXing()] : []).join("");
+  const map = {"木":"wood","火":"fire","土":"earth","金":"metal","水":"water"};
+  const fe = {wood:0,fire:0,earth:0,metal:0,water:0};
+  for(const ch of wxStr) if(map[ch]) fe[map[ch]]++;
+  const names = {wood:"木",fire:"火",earth:"土",metal:"金",water:"水"};
+  const sorted = Object.entries(fe).sort((a,b)=>b[1]-a[1]);
+  const dayGan = ec.getDayGan(), dayWx = ec.getDayWuXing()[0];
+  return {
+    public:{
+      dataSource:"api", engine:"lunar-javascript",
+      lunarDate: toTW(lunar.toString()),
+      ...pillars,
+      dayMaster: dayGan + dayWx,
+      tenGods,
+      luckCycles, luckNote,
+      currentLuck: cur || null,
+      yearGanZhi: { [CURRENT_YEAR]: yearGZ(CURRENT_YEAR), [CURRENT_YEAR+1]: yearGZ(CURRENT_YEAR+1) },
+      note: (known ? "" : "未提供出生時間，時柱留空。") + "出生時間未換算真太陽時。"
+    },
+    wuxing:{
+      dataSource:"api", engine:"lunar-javascript",
+      dayMaster: dayGan + dayWx,
+      fiveElements: fe,
+      strongest: names[sorted[0][0]],
+      weakest: names[sorted[4][0]],
+      missing: sorted.filter(([k,v])=>v===0).map(([k])=>names[k]),
+      method: `以八字${known?"八":"六"}字（天干地支表面五行）計數，未計地支藏干與月令旺衰`,
+      note: known ? "" : "缺少出生時間，僅以年、月、日六字計算"
+    }
+  };
+}
+
+/* ✓ 真實紫微斗數 */
+function calcZiwei(user, y,m,d,hh){
+  const timeIndex = hh === 23 ? 12 : Math.floor((hh+1)/2);   // 0 早子 … 11 亥 / 12 晚子
+  const genderKnown = user.gender === "男" || user.gender === "女";
+  const a = iztro.astro.bySolar(`${y}-${m}-${d}`, timeIndex, genderKnown ? user.gender : "女", true, "zh-TW");
+  const nm = n => n.endsWith("宮") ? n : n + "宮";
+  const palaces = a.palaces.map(p=>({
+    palace: nm(p.name),
+    isBodyPalace: !!p.isBodyPalace,
+    mainStars: p.majorStars.length ? p.majorStars.map(s=>s.name + (s.mutagen ? "化"+s.mutagen : "")).join("、") : "無主星",
+    minorStars: p.minorStars.map(s=>s.name).slice(0,6).join("、")
+  }));
+  return {
+    dataSource:"api", engine:"iztro",
+    soulStar: a.soul, bodyStar: a.body,
+    fiveElementsClass: a.fiveElementsClass,
+    bodyPalace: (palaces.find(p=>p.isBodyPalace)||{}).palace || "",
+    palaces,
+    note: (genderKnown ? "" : "未提供性別：主星位置不受影響，但大限順逆無法判斷，故不提供大限。") + "出生時間未換算真太陽時。"
+  };
+}
+
+/* 以出生資料產生固定亂數（僅供模擬備援使用） */
+function makeRng(user){
+  const seedStr = user.birthDate + user.birthTime + user.birthPlace;
+  let h = 2166136261;
+  for(let i=0;i<seedStr.length;i++){ h ^= seedStr.charCodeAt(i); h = Math.imul(h,16777619); }
+  return ()=>{ h ^= h<<13; h ^= h>>>17; h ^= h<<5; return ((h>>>0)%10000)/10000; };
+}
+
+/* ⚠ 模擬八字／五行（只在套件載入失敗時使用） */
+function mockBazi(rand, user){
+  const stems = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
+  const branches = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+  const pillar = ()=>{ const i=Math.floor(rand()*60); return stems[i%10]+branches[i%12]; };
+  const elemOfStem = {甲:"木",乙:"木",丙:"火",丁:"火",戊:"土",己:"土",庚:"金",辛:"金",壬:"水",癸:"水"};
+  const day = pillar();
+  const fe = {wood:0,fire:0,earth:0,metal:0,water:0}; const keys = Object.keys(fe);
+  for(let i=0;i<8;i++) fe[keys[Math.floor(rand()*5)]]++;
+  const names = {wood:"木",fire:"火",earth:"土",metal:"金",water:"水"};
+  const sorted = Object.entries(fe).sort((a,b)=>b[1]-a[1]);
+  return {
+    public:{ dataSource:"mock", yearPillar:pillar(), monthPillar:pillar(), dayPillar:day, hourPillar:user.birthTimeKnown?pillar():"",
+      dayMaster: day[0]+elemOfStem[day[0]], tenGods:{}, luckCycles:[], luckNote:"模擬資料", note:"排盤套件未載入，此為模擬資料" },
+    wuxing:{ dataSource:"mock", dayMaster: day[0]+elemOfStem[day[0]], fiveElements:fe, strongest:names[sorted[0][0]], weakest:names[sorted[4][0]], missing:[], method:"模擬", note:"排盤套件未載入，此為模擬資料" }
+  };
+}
+
+/* ⚠ 模擬紫微（只在套件載入失敗或沒有出生時間時使用） */
+function mockZiwei(rand){
+  const stars = ["紫微","天機","太陽","武曲","天同","廉貞","天府","太陰","貪狼","巨門","天相","天梁","七殺","破軍"];
+  const palaces = ["命宮","兄弟宮","夫妻宮","子女宮","財帛宮","疾厄宮","遷移宮","僕役宮","官祿宮","田宅宮","福德宮","父母宮"];
+  return { dataSource:"mock", soulStar:"", bodyStar:"", fiveElementsClass:"", bodyPalace:"",
+    palaces: palaces.map(p=>({ palace:p, isBodyPalace:false, mainStars:stars[Math.floor(rand()*14)], minorStars:"" })),
+    note:"排盤套件未載入，此為模擬資料" };
+}
+
+/* ✓ 生命靈數：常見公式計算
+   主命數 = 出生年月日所有數字相加，反覆相加至個位數（保留 11、22、33 大師數）
+   流年數 = 當年西元年 + 出生月 + 出生日 的數字相加 */
+const NUM_KEYWORDS = {
+  1:"獨立、開創、領導",2:"合作、敏感、協調",3:"創意、表達、樂觀",4:"穩定、務實、紀律",
+  5:"自由、變化、探索",6:"責任、照顧、美感",7:"思考、分析、內省",8:"目標、資源、執行",
+  9:"理想、包容、助人",11:"直覺、啟發、敏銳",22:"實踐、建構、遠見",33:"奉獻、療癒、關懷"
+};
+function reduceNum(n, keepMaster=true){
+  const steps = [];
+  while(n > 9 && !(keepMaster && [11,22,33].includes(n))){
+    const digits = String(n).split("").map(Number);
+    const s = digits.reduce((a,b)=>a+b,0);
+    steps.push(`${digits.join("+")} = ${s}`);
+    n = s;
+  }
+  return { value:n, steps };
+}
+function calcNumerology(birthDate, year){
+  const digits = birthDate.replace(/\D/g,"").split("").map(Number);
+  const sum = digits.reduce((a,b)=>a+b,0);
+  const life = reduceNum(sum);
+  const day = reduceNum(Number(birthDate.slice(8,10)));
+  const [ , mm, dd ] = birthDate.split("-");
+  const py = (yr)=>reduceNum((String(yr)+mm+dd).split("").map(Number).reduce((a,b)=>a+b,0), false).value;
+  return {
+    dataSource:"calculated",
+    lifePathNumber: life.value,
+    calculation: `${digits.join("+")} = ${sum}` + (life.steps.length ? " → " + life.steps.join(" → ") : ""),
+    birthdayNumber: day.value,
+    personalYear: { year, number: py(year) },
+    nextPersonalYear: { year:year+1, number: py(year+1) },
+    keywords: NUM_KEYWORDS[life.value] || "",
+    note: "依常見生命靈數公式計算；關鍵字為傳統常見詮釋，僅供參考"
+  };
+}
+
+/* =========================================================
+   4. 建立標準 JSON Object（含依問題的「判讀重點」）
+   ========================================================= */
+/* 依問題主題告訴 AI：每個命盤要優先看哪些位置 → 讓回答針對問題、而不是泛泛而談 */
+const FOCUS = {
+  "工作／事業": { ziwei:["官祿宮","命宮","遷移宮"], bazi:["正官、七殺（工作與規範）","食神、傷官（才華與表現）","目前大運"], wuxing:["日主強弱與最旺五行（適合的工作節奏）"], numerology:["主命數的天賦","流年數"] },
+  "財務／金錢": { ziwei:["財帛宮","田宅宮","福德宮"], bazi:["正財、偏財","比肩、劫財（花費與競爭）","目前大運"], wuxing:["最旺與最弱五行（理財習慣的平衡）"], numerology:["主命數的金錢觀","流年數"] },
+  "感情／關係": { ziwei:["夫妻宮","命宮","福德宮"], bazi:["日支（夫妻宮）藏干十神","官殺或財星（依性別）"], wuxing:["五行偏重對互動模式的影響"], numerology:["主命數的關係課題","生日數"] },
+  "人際／家庭": { ziwei:["僕役宮","父母宮","兄弟宮"], bazi:["比肩、劫財（同輩）","正印、偏印（長輩）"], wuxing:["五行偏重對互動節奏的影響"], numerology:["主命數的人際課題","生日數"] },
+  "副業／創業": { ziwei:["官祿宮","財帛宮","命宮"], bazi:["食神、傷官（把才華變現）","偏財","目前大運"], wuxing:["最旺五行對應的產業屬性"], numerology:["主命數的天賦","流年數"] },
+  "認識自己":   { ziwei:["命宮","身宮","福德宮"], bazi:["日主","月令與十神整體結構"], wuxing:["五行分布與缺失"], numerology:["主命數","生日數"] },
+  "2026 流年":  { ziwei:["命宮","官祿宮","財帛宮","夫妻宮"], bazi:["2026 流年干支","目前大運"], wuxing:["流年干支五行與命局五行的關係"], numerology:["2026 流年數"] },
+  "2027 流年":  { ziwei:["命宮","官祿宮","財帛宮","夫妻宮"], bazi:["2027 流年干支","2027 所在大運"], wuxing:["流年干支五行與命局五行的關係"], numerology:["2027 流年數"] }
+};
+
+function buildPayload(user, chart, rec, systems, questionText){
+  const type = CATEGORIES[rec.category].type;
+  const yearMatch = type.match(/(\d{4})\s*流年/);
+  const primaryKey = systems.includes(rec.primary) ? rec.primary : systems[0];
+  const focus = {};
+  systems.forEach(k=>{ focus[SYSTEMS[k].name] = (FOCUS[rec.category]||{})[k] || []; });
+  const sources = SYSTEM_ORDER.filter(k=>chart[k]).map(k=>chart[k].dataSource);
+  return {
+    user:{ ...user },
+    analysis:{
+      type, language:"zh-TW",
+      question:{ category: rec.category, text: questionText || "" },
+      systems: systems.map(k=>SYSTEMS[k].name),
+      primarySystem: SYSTEMS[primaryKey].name,
+      primaryReason: (rec.ranked.find(r=>r.key===primaryKey)||{}).why || "",
+      focus,
+      ...(yearMatch ? { targetYear:Number(yearMatch[1]) } : {})
+    },
+    chart:{
+      dataSource: sources.includes("mock") ? (sources.every(s=>s==="mock") ? "mock" : "mixed") : "api",
+      ...chart
+    }
+  };
+}
+
+/* =========================================================
+   5. AI Prompt（★ 前端與後端共用同一份；改 Prompt 請改這裡）
+   定位：自我探索型命盤分析師 —— 懂命理的自我探索顧問＋人生觀察者＋職涯分析師
+   報告分成 3 個部分同時產生（a / b / c），避免單次輸出太長超過時間限制
+   ========================================================= */
+const PROMPT_SYSTEM = `你是一位「自我探索型命盤分析師」：懂命理的自我探索顧問＋人生觀察者＋職涯分析師。
+你的任務不是算命或預測命運，而是透過「命盤資料＋使用者提供的真實人生狀態」，幫助使用者更了解自己。
+你只輸出合法 JSON，不輸出任何其他文字。`;
+
+function promptRules(data){
+  const names = { ziwei:"紫微斗數", bazi:"八字", wuxing:"五行", numerology:"生命靈數" };
+  const mockSys = Object.keys(names).filter(k=>data.chart && data.chart[k] && data.chart[k].dataSource==="mock").map(k=>names[k]);
+  return `【分析原則 — 必須遵守】
+1. 所有命理分析只能建立在下方「命盤資料 JSON」中真的存在的資料（宮位、星曜、四化、四柱、十神、大運、流年、五行數量、靈數）。不得捏造任何命盤資訊。
+2. 資料不足時要直接說「這部分資料不足」，不要猜。${data.user && data.user.birthTimeKnown === false ? "使用者不知道出生時間：與時辰相關的判斷一律註明不確定。" : ""}
+3. 不把命盤描述成絕對命運。禁止「命中注定」「一定會」「這輩子只能」「注定會」。改用「你比較容易…」「你可能傾向…」「如果放到現實生活…」「你真正需要注意的可能不是…而是…」。
+4. 不使用恐嚇、災難、宿命式語言；不以疾病、死亡、災難製造焦慮；不做醫療、法律或財務上的保證性判斷。
+5. 不只講優點。看到明顯盲點、矛盾或重複出現的模式，可以直接指出，但要說明原因與改善方式。
+6. 分析公式：命盤資料 → 人格／心理傾向 → 行為模式 → 現實生活表現 → 優勢 → 盲點 → 改善方向 → 實際行動。每段都要回答「所以呢？」：這對使用者的現實生活有什麼影響。
+7. 結合使用者提供的「年齡、目前工作／身分、最近的生活狀態、現在的問題」來分析；使用者沒提供的，不要自己編。
+${mockSys.length ? `8. ${mockSys.join("、")} 的 dataSource 為 "mock"（模擬資料），引用時必須註明「（模擬資料）」。\n` : ""}
+【語言風格】
+繁體中文。直接、白話、有洞察力，像真正了解對方的朋友，但不過度討好。命理術語一定要翻成一般人聽得懂的話。
+禁止空泛句：「你是一個非常有潛力的人」「你的命格非常特殊」「你天生就是成功的人」「未來一定會越來越好」。
+優先句型：「你不是沒有能力，而是…」「你真正容易卡住的地方可能是…」「這也是為什麼你可能會…」「你看起來像…，但其實…」「你的優勢如果使用過度，反而可能變成…」「如果把這個特質放到工作上／感情裡…」。
+要讓人有「被看見」的感覺，但不能為了製造共鳴而捏造內容。每個欄位 1-3 句、具體，不要寫成長篇。`;
+}
+
+function profileBlock(data){
+  const u = data.user, p = u.profile || {}, q = data.analysis.question;
+  return `【使用者的真實人生狀態】
+年齡：${p.age != null ? p.age + " 歲" : "未提供"}
+目前工作／身分：${p.occupation || "未提供"}
+最近的生活狀態：${p.currentState || "未提供"}
+現在最想解決的問題：${q.category}${q.text ? "－" + q.text : ""}
+主要參考命盤：${data.analysis.primarySystem}（${data.analysis.primaryReason || ""}）
+各命盤針對這個問題優先看的位置：
+${Object.entries(data.analysis.focus || {}).map(([s,items])=>`- ${s}：${items.join("、") || "整體"}`).join("\n")}${data.analysis.targetYear ? `\n重點年份：${data.analysis.targetYear}（只用命盤資料中該年的流年干支／流年數）` : ""}`;
+}
+
+const REPORT_PARTS = {
+  a: `請輸出報告的【第一部分】：一句話總結、針對問題的回答、核心人格、隱藏優勢。
+{
+  "oneLiner": "我的命盤，一句話看懂：一句高度個人化的總結（不是雞湯）",
+  "questionAnswer": {
+    "conclusion": "直接回答使用者現在的問題，1-2 句明確方向",
+    "reasoning": ["引用主要命盤優先位置的具體資料 → 代表的傾向 → 和他的問題有什麼關係"],
+    "actions": ["這幾週就能做的具體行動 3 項"],
+    "watchOut": ["需要留意的 1-2 點"],
+    "basedOn": ["實際引用的命盤資料，例如「紫微・官祿宮：天機化祿」"]
+  },
+  "coreTraits": [
+    { "trait": "特質名稱", "basis": "命盤依據（寫出具體資料）", "reality": "日常生活中可能怎麼出現", "strength": "帶來的優勢", "blindspot": "使用過度時的問題", "advice": "可以怎麼運用或調整" }
+  ],
+  "hiddenStrengths": [
+    { "ability": "容易被忽略的能力", "basis": "命盤依據", "whyOverlooked": "為什麼容易被忽略", "whereToUse": "可以用在哪裡", "ifDeveloped": "刻意培養後可以變成什麼能力" }
+  ]
+}
+coreTraits 3-5 個；hiddenStrengths 2-3 個（從創意、溝通、分析、觀察、整合、執行、領導、同理、銷售、內容、表達、學習、資源整合、人際、管理、問題解決中，找命盤有依據的）。`,
+
+  b: `請輸出報告的【第二部分】：卡點、反差人格、決策模式。
+{
+  "stuckPoints": [
+    { "point": "你容易卡在哪裡（具體情境，不要只說想太多）", "basis": "命盤依據", "cause": "可能原因", "howItHappens": "生活中可能怎麼發生、如何察覺自己正在進入這個模式", "consequence": "可能造成什麼結果", "realAdjustment": "你真正需要調整的是什麼", "advice": "具體建議" }
+  ],
+  "contrasts": [
+    { "text": "用「你看起來像＿＿，但其實＿＿」或「你以為自己的問題是＿＿，但真正可能卡住你的其實是＿＿」或「你的優勢如果使用過度，反而會變成＿＿」", "basis": "命盤或使用者資料依據" }
+  ],
+  "decision": {
+    "howYouDecide": "通常如何做決定", "fastWhen": "什麼情況下容易快速決定", "hesitateWhen": "什麼情況下容易猶豫",
+    "influence": "是否容易受他人意見影響", "fearOfMistake": "是否容易因怕犯錯而延遲", "impulsive": "是否容易衝動開始",
+    "bestMethod": "最適合的決策方式",
+    "manual": ["你的決策使用說明書：3-5 條具體可用的規則"]
+  }
+}
+stuckPoints 剛好 3 個；contrasts 2-3 個，每個都要有依據，禁止硬湊。`,
+
+  c: `請輸出報告的【第三部分】：職涯、收入、人際感情、人生階段、行動。
+{
+  "career": {
+    "environment": "適合的工作環境", "structure": "適合固定流程還是高度自由", "teamwork": "適合獨立還是團隊", "pace": "適合穩定累積還是專案型",
+    "workType": "偏創意／內容／管理／業務／分析／專業型中的哪幾種，為什麼", "draining": "最容易消耗的環境",
+    "strengths": ["核心職涯優勢"], "blindspots": ["職涯盲點"], "skillsToBuild": ["最值得累積的 3 個能力"], "higherValue": ["可以轉換成更高職涯價值的能力"],
+    "manual": ["你的職涯使用說明書：3-5 條"]
+  },
+  "income": {
+    "attitude": "對金錢可能的態度", "valueCreation": "容易透過什麼方式創造價值", "singleOrMulti": "適合單一還是多元收入",
+    "accumulate": "適合累積專業／個人品牌／人脈／資源／管理哪一種", "blindspots": ["金錢盲點"], "afterIncrease": "收入增加後要注意什麼", "priority": "想增加收入，優先培養什麼能力",
+    "map": [ { "ability": "能力", "value": "可以提供的價值", "service": "可以發展的工作／服務", "model": "可能的收入模式", "toImprove": "需要補強的能力" } ]
+  },
+  "relationship": {
+    "build": "如何建立關係", "role": "在關係中常扮演的角色", "pattern": "容易出現的互動模式", "insecurity": "容易因為什麼感到不安全",
+    "overGiving": "容易在哪裡過度付出或過度防衛", "communication": "容易出現的溝通問題", "boundaries": "適合建立的關係界線"
+  },
+  "lifeStage": {
+    "lesson": "現階段最重要的課題", "learning": "正在學習的能力", "resistance": "最容易遇到的阻力",
+    "accumulate": "現在最值得累積什麼", "noRush": "哪些事情可以暫時不要急", "nextStage": "下一個階段要注意什麼"
+  },
+  "next30": [ { "what": "做什麼", "why": "為什麼", "how": "怎麼開始（第一步）" } ],
+  "next90": [ { "direction": "長期方向", "why": "為什麼現在要累積這個" } ],
+  "finalWords": "給現在的我一句話：高度個人化，不要一般雞湯",
+  "followUpSuggestions": ["使用者接下來可能想追問的問題 3 個"],
+  "disclaimer": "一句簡短免責聲明"
+}
+income.map 2-3 列；next30 3-5 項；next90 剛好 3 項。人際感情只談模式，不預測特定人物或感情事件。人生階段要結合年齡與目前狀態。`
+};
+
+function generatePrompt(data, part){
+  part = REPORT_PARTS[part] ? part : "a";
+  return `${promptRules(data)}
+
+${profileBlock(data)}
+
+【命盤資料 JSON】
+${JSON.stringify(data.chart, null, 2)}
+
+【輸出】
+${REPORT_PARTS[part]}
+只輸出這一個 JSON 物件。`;
+}
+
+function generateFollowUpPrompt(data, report, history, question){
+  const brief = report ? { oneLiner: report.oneLiner, questionAnswer: report.questionAnswer, coreTraits: (report.coreTraits||[]).map(t=>t.trait), stuckPoints: (report.stuckPoints||[]).map(s=>s.point) } : null;
+  const recent = (history || []).slice(-6).map(m=>`${m.role==="user"?"使用者":"AI"}：${String(m.text||"").slice(0,600)}`).join("\n");
+  return `${promptRules(data)}
+9. 這是延伸提問：回答要以同一份命盤資料為依據，並與先前報告一致；問題超出命盤能回答的範圍時，誠實說明，再給實用建議。
+
+${profileBlock(data)}
+
+【命盤資料 JSON】
+${JSON.stringify(data.chart, null, 2)}
+
+【先前報告重點】
+${brief ? JSON.stringify(brief, null, 2) : "（無）"}
+
+【先前對話】
+${recent || "（無）"}
+
+【使用者這次的提問】
+${question}
+
+【回答方式】先 1-2 句直接回答，再說明依據的命盤資料 → 代表的傾向 → 放到他的現實生活會怎樣，最後給具體可做的事。
+
+【輸出格式】只輸出一個合法 JSON 物件：
+{
+  "answer": "回答內容（4-8 句，先結論後理由）",
+  "basedOn": ["引用到的命盤資料"],
+  "actions": ["具體建議 0-4 項"],
+  "nextQuestions": ["接下來可能想問的問題 2-3 個"]
+}`;
+}
+
+/* =========================================================
+   6. AI 串接
+   ---------------------------------------------------------
+   正式上線：provider = "proxy" → 呼叫 /api/ai（Netlify Function）
+     前端只送「命盤資料 + 問題」，Prompt 在後端組合、API Key 存在後端環境變數
+   管理者測試：網址加 ?admin=1 → 右上角出現「AI 設定」，可改模擬 AI 或前端直連
+   ========================================================= */
+function noBackend(res){
+  const ct = res.headers.get("content-type") || "";
+  return [404,405,501].includes(res.status) || ct.includes("text/html");   // 靜態主機會回 404/405 或 HTML 頁面
+}
+function backendMissing(reason){ const e = new Error(reason); e.backendMissing = true; return e; }
+
+async function callAI(req){
+  // req = { kind:"report"|"followup", prompt, data, report?, history?, question? }
+  const s = state.settings;
+  if(s.provider === "mock") return req.kind==="followup" ? await callMockFollowUp(req.question) : await callMockAI();
+
+  if(s.provider === "local") throw backendMissing("目前設定為內建解讀");
+
+  if(s.provider === "proxy"){
+    const payload = JSON.stringify({ kind:req.kind, part:req.part || "a", data:req.data, report:req.report || null, history:req.history || [], question:req.question || "" });
+    let res = null;
+    for(const url of [PROXY_ENDPOINT, PROXY_FALLBACK]){
+      try{ res = await fetch(url,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:payload }); }
+      catch(e){ res = null; continue; }
+      if(!noBackend(res)) break;   // 找到後端了
+    }
+    // 沒有後端（GitHub Pages、拖曳上傳、本機開檔）→ 改用內建解讀，不讓使用者看到錯誤
+    if(!res || noBackend(res)) throw backendMissing("找不到 /api/ai 後端（" + (res ? res.status : "連線失敗") + "）");
+    const ct = res.headers.get("content-type") || "";
+    if(!res.ok || ct.includes("application/json")){
+      const body = await res.json().catch(()=>null);
+      const msg = (body && body.error) || ("後端錯誤（" + res.status + "）");
+      if(res.status === 500 && /ANTHROPIC_API_KEY/.test(msg)) throw backendMissing(msg);   // Key 沒設定 → 先用內建解讀
+      throw new Error(msg);
+    }
+    const text = await res.text();
+    if(text.includes("[[STREAM_ERROR]]")) throw new Error("AI 回應中斷，請再試一次。");
+    return text;
+  }
+
+  // ↓ 以下為前端直連，只限管理者自己測試（Key 會留在瀏覽器）
+  if(!s.apiKey) throw new Error("尚未設定 API Key（AI 設定），或改用「模擬 AI」。");
+  if(s.provider === "anthropic"){
+    const res = await fetch(s.endpoint || PROVIDER_DEFAULTS.anthropic.endpoint,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "x-api-key":s.apiKey, "anthropic-version":"2023-06-01", "anthropic-dangerous-direct-browser-access":"true" },
+      body:JSON.stringify({ model:s.model || PROVIDER_DEFAULTS.anthropic.model, max_tokens: req.kind==="followup"?1500:3500, system:PROMPT_SYSTEM, messages:[{ role:"user", content:req.prompt }] })
+    });
+    const data = await res.json().catch(()=>null);
+    if(!res.ok) throw new Error("Anthropic API 錯誤（" + res.status + "）：" + (data?.error?.message || "未知錯誤"));
+    return arr(data?.content).filter(b=>b.type==="text").map(b=>b.text).join("\n");
+  }
+  if(s.provider === "openai"){
+    const res = await fetch(s.endpoint || PROVIDER_DEFAULTS.openai.endpoint,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "Authorization":"Bearer " + s.apiKey },
+      body:JSON.stringify({ model:s.model || PROVIDER_DEFAULTS.openai.model, temperature:0.7, response_format:{ type:"json_object" },
+        messages:[{ role:"system", content:PROMPT_SYSTEM },{ role:"user", content:req.prompt }] })
+    });
+    const data = await res.json().catch(()=>null);
+    if(!res.ok) throw new Error("OpenAI API 錯誤（" + res.status + "）：" + (data?.error?.message || "未知錯誤"));
+    return data?.choices?.[0]?.message?.content || "";
+  }
+  throw new Error("未知的 AI 服務設定");
+}
+
+/* 模擬 AI（管理者測試用）：直接回傳內建解讀，不呼叫 API */
+async function callMockAI(){ await sleep(600); return JSON.stringify(localInterpret(state.lastPayload)); }
+async function callMockFollowUp(question){ await sleep(500); return JSON.stringify(localFollowUp(question)); }
+
+/* =========================================================
+   6-B. 內建解讀（沒有連上 AI 後端時自動使用）
+   ---------------------------------------------------------
+   依「真實排盤資料」＋傳統常見詮釋，整理出報告的基本骨架。
+   不是 AI 生成：只能做到「一句話、針對問題、核心人格、卡點、行動」，
+   決策、職涯、收入、感情等需要結合人生狀態的深度分析，要連上 AI 才會產生。
+   ========================================================= */
+const STAR_INFO = {
+  "紫微":{ t:"想主導、自尊心強", s:"有格局、能扛責任、自然成為核心", b:"不容易示弱，事情容易都往自己身上攬" },
+  "天機":{ t:"腦袋轉很快、愛規劃", s:"分析、策劃、找方法的能力強", b:"想太多、變來變去，計畫多於行動" },
+  "太陽":{ t:"熱情、習慣付出", s:"有感染力，願意照顧與帶動別人", b:"太在意被看見，付出過多卻忽略自己" },
+  "武曲":{ t:"務實、重結果", s:"執行力與對錢、資源的掌握力強", b:"說話直、少彈性，容易顯得冷硬" },
+  "天同":{ t:"溫和、重視舒服與和諧", s:"好相處、能讓人放鬆，懂得生活", b:"遇到壓力容易拖延或逃避" },
+  "廉貞":{ t:"有原則、企圖心強、情感濃烈", s:"目標感強，能在規則中找到突破", b:"內心糾結多，對人對己要求高" },
+  "天府":{ t:"穩重、擅長守成", s:"管理資源、把事情穩穩接住", b:"保守怕變，錯過需要冒一點險的機會" },
+  "太陰":{ t:"細膩、敏感、重安全感", s:"觀察力好，擅長規劃與照顧細節", b:"情緒放心裡，容易自己消化到累" },
+  "貪狼":{ t:"多才多藝、好奇心旺盛", s:"社交力、學習力、對新事物的敏銳度", b:"興趣太多難聚焦，容易三分鐘熱度" },
+  "巨門":{ t:"愛分析、有口才", s:"研究、表達、找出問題核心", b:"容易懷疑、話說太直引起誤會" },
+  "天相":{ t:"協調者、重形象與公平", s:"整合、溝通、當可靠的夥伴", b:"太在意別人觀感，難以說不" },
+  "天梁":{ t:"成熟、愛照顧人", s:"給建議、當靠山、解決問題", b:"容易說教或一肩扛起別人的事" },
+  "七殺":{ t:"果斷、衝勁強", s:"開創、面對挑戰、快速決策", b:"太急、不耐等待，容易硬碰硬" },
+  "破軍":{ t:"求新求變、敢破舊立新", s:"改革、打掉重練、開新局", b:"起伏大，容易在穩定前就想換" }
+};
+const MUTAGEN_MEANING = { "祿":"順利、資源與機會","權":"掌控力，努力會有成果","科":"名聲、貴人與好評","忌":"容易執著、卡關，需要多留意" };
+const PALACE_MEANING = {
+  "命宮":"你的個性本質","兄弟宮":"手足與同輩","夫妻宮":"感情互動模式","子女宮":"子女與下屬","財帛宮":"賺錢與花錢的方式",
+  "疾厄宮":"身心狀態的傾向","遷移宮":"對外發展與外在表現","僕役宮":"朋友、同事與人脈","官祿宮":"工作型態與事業發展",
+  "田宅宮":"家庭與資產","福德宮":"內在滿足與精神狀態","父母宮":"長輩、上司與文書"
+};
+const TENGOD_INFO = {
+  "比肩":{ t:"自主獨立", s:"自己的事自己扛、有主見", b:"不太願意求助，容易固執" },
+  "劫財":{ t:"好勝、敢衝", s:"競爭力與行動力", b:"花費與衝動，容易為面子付出" },
+  "食神":{ t:"有才華、懂享受", s:"自然的表達與創作力", b:"太安於舒適，缺少壓力就不想動" },
+  "傷官":{ t:"創意強、不喜歡被框住", s:"表達、創新、挑戰既有做法", b:"說話鋒利、和權威容易衝突" },
+  "偏財":{ t:"善於抓機會", s:"社交與把握外部資源", b:"來得快去得也快，理財較隨性" },
+  "正財":{ t:"務實、重穩定", s:"踏實累積、管理收支", b:"太求穩，錯過需要冒險的機會" },
+  "七殺":{ t:"有魄力、扛得住壓力", s:"在高壓中做決定", b:"長期處在緊繃狀態，對自己太狠" },
+  "正官":{ t:"重規範與責任", s:"可靠、守紀律，適合有制度的環境", b:"太在意對錯與評價，不敢犯錯" },
+  "偏印":{ t:"思考獨特、直覺強", s:"洞察、研究、冷門領域的專精", b:"想很多、容易孤立，行動慢" },
+  "正印":{ t:"愛學習、重安全感", s:"吸收知識、得到長輩與貴人幫助", b:"依賴準備，遲遲覺得自己還不夠" }
+};
+const NUM_INFO = {
+  1:{ s:"開創與獨立", b:"不想被管，也不太會請別人幫忙" }, 2:{ s:"協調與感受力", b:"太在意別人感受而委屈自己" },
+  3:{ s:"表達與創意", b:"情緒起伏、容易分心" }, 4:{ s:"穩定與執行", b:"怕變動、對自己太嚴格" },
+  5:{ s:"適應與探索", b:"不耐重複，難以長期堅持" }, 6:{ s:"照顧與美感", b:"責任感過重、想把每個人都顧好" },
+  7:{ s:"思考與洞察", b:"想太多、不輕易信任人" }, 8:{ s:"目標與資源整合", b:"太看重成果，容易忽略過程與感受" },
+  9:{ s:"包容與理想", b:"為別人付出太多、難以拒絕" }, 11:{ s:"直覺與啟發", b:"敏感、容易焦慮" },
+  22:{ s:"把理想落地", b:"給自己的壓力很大" }, 33:{ s:"療癒與關懷", b:"背負太多別人的情緒" }
+};
+const ELEMENT_MEANING = { "木":"成長、規劃、教育與文字","火":"熱情、表達、行銷與曝光","土":"穩定、信用、整合與管理","金":"決斷、規則、專業與技術","水":"靈活、溝通、流動與資訊" };
+const PERSONAL_YEAR = { 1:"新的開始，適合啟動新計畫",2:"合作與等待，適合經營關係、放慢腳步",3:"表達與社交，適合曝光、創作",4:"打基礎，適合穩紮穩打、建立制度",
+  5:"變動與轉換，適合嘗試新方向",6:"責任與家庭，適合照顧關係與承擔",7:"沉澱與學習，適合進修、向內整理",8:"收成與事業，適合爭取資源與財務規劃",9:"結束與整理，適合放下舊事、為新循環做準備" };
+const YEAR_WX = { "甲":"木","乙":"木","丙":"火","丁":"火","戊":"土","己":"土","庚":"金","辛":"金","壬":"水","癸":"水" };
+
+function parseStars(mainStars){
+  if(!mainStars || mainStars === "無主星") return [];
+  return mainStars.split("、").map(st=>{ const m = st.match(/^(.+?)(化(祿|權|科|忌))?$/); return { base:m[1], mut:m[3] }; }).filter(x=>STAR_INFO[x.base]);
+}
+function palaceOf(c, name){ return c.ziwei && c.ziwei.dataSource !== "mock" ? c.ziwei.palaces.find(p=>p.palace===name) : null; }
+
+function localInterpret(payload, categoryOverride){
+  const c = payload.chart, a = payload.analysis;
+  const cat = categoryOverride || a.question.category;
+  const reasoning = [], basedOn = [], traits = [], stuck = [];
+  let tone = 0;
+
+  // 核心人格：命宮主星、八字月干、生命靈數
+  const ming = palaceOf(c,"命宮");
+  if(ming){ parseStars(ming.mainStars).slice(0,2).forEach(st=>{ const i = STAR_INFO[st.base];
+    traits.push({ trait:i.t, basis:`紫微・命宮：${ming.mainStars}`, reality:`你處理事情時，常常會表現出「${i.t}」的一面。`, strength:i.s, blindspot:i.b, advice:`把「${i.s.split("、")[0]}」放在你最需要被看見的地方，同時留意${i.b.split("，")[0]}。` });
+    stuck.push({ point:i.b, basis:`紫微・命宮：${st.base}`, cause:`「${i.t}」的特質用過頭`, howItHappens:"在壓力大或很在意結果的時候特別明顯", consequence:"容易讓自己更累，或讓身邊的人不知道怎麼幫你", realAdjustment:"不是改掉這個特質，而是知道什麼時候該收", advice:"下次察覺自己又進入這個模式時，先停 10 分鐘再決定" });
+  }); }
+  const tg = c.bazi && c.bazi.dataSource !== "mock" ? c.bazi.tenGods : null;
+  if(tg && TENGOD_INFO[tg.monthStem]){ const i = TENGOD_INFO[tg.monthStem];
+    traits.push({ trait:i.t, basis:`八字・月干：${tg.monthStem}`, reality:"這是你在社會、工作中最常拿出來用的樣子。", strength:i.s, blindspot:i.b, advice:"在工作上主動使用這個強項，但給自己保留彈性。" });
+    stuck.push({ point:i.b, basis:`八字・月干：${tg.monthStem}`, cause:`${i.t}的另一面`, howItHappens:"在工作或需要表現的場合", consequence:"做得很多卻不一定被看見，或卡在同樣的位置", realAdjustment:"把標準說出來，而不是自己默默扛", advice:"每週回顧一次：哪件事其實可以不用做到 100 分" }); }
+  if(c.numerology){ const n = c.numerology, i = NUM_INFO[n.lifePathNumber];
+    if(i) traits.push({ trait:`${n.lifePathNumber} 號人：${n.keywords}`, basis:`生命靈數：主命數 ${n.lifePathNumber}`, reality:"這是你做選擇時很自然會出現的價值觀。", strength:i.s, blindspot:i.b, advice:`多做能發揮「${i.s}」的事，並留意${i.b}。` });
+    if(i && stuck.length < 3) stuck.push({ point:i.b, basis:`生命靈數：主命數 ${n.lifePathNumber}`, cause:"主命數的課題", howItHappens:"在關係與選擇中反覆出現", consequence:"容易讓你在同一種情境裡感到疲累", realAdjustment:"先照顧好自己的需求，再照顧別人的", advice:"寫下最近一次出現這個模式的情境，下次提早察覺" }); }
+  if(c.wuxing && c.wuxing.dataSource !== "mock"){ const w = c.wuxing;
+    traits.push({ trait:`${w.strongest}的能量最明顯`, basis:`五行：${w.strongest}最多${w.missing.length?"、缺"+w.missing.join(""):""}`, reality:`你自然傾向${ELEMENT_MEANING[w.strongest]}相關的做事方式。`, strength:ELEMENT_MEANING[w.strongest], blindspot:w.missing.length?`缺${w.missing.join("、")}，${w.missing.map(x=>ELEMENT_MEANING[x].split("、")[0]).join("、")}相關的事可能比較吃力`:`${w.weakest}較少`, advice:w.missing.length?`刻意接觸${w.missing.map(x=>ELEMENT_MEANING[x]).join("；")}相關的事來平衡。`:"維持現在的平衡。" }); }
+
+  // 針對問題：主題對應的宮位／十神／流年
+  const zwFocus = { "工作／事業":["官祿宮","遷移宮"], "財務／金錢":["財帛宮","田宅宮"], "感情／關係":["夫妻宮","福德宮"], "人際／家庭":["僕役宮","父母宮"],
+    "副業／創業":["官祿宮","財帛宮"], "認識自己":["命宮","福德宮"], "2026 流年":["命宮","官祿宮"], "2027 流年":["命宮","財帛宮"] }[cat] || ["命宮"];
+  zwFocus.forEach(pn=>{ const p = palaceOf(c,pn); if(!p) return;
+    const sts = parseStars(p.mainStars);
+    sts.forEach(st=>{ if(st.mut==="忌") tone -= 1; else if(st.mut) tone += 1; });
+    reasoning.push(sts.length ? `紫微・${pn}（${PALACE_MEANING[pn]}）是 ${p.mainStars}：${sts.map(st=>STAR_INFO[st.base].t + (st.mut?`，化${st.mut}代表${MUTAGEN_MEANING[st.mut]}`:"")).join("；")}。` : `紫微・${pn}（${PALACE_MEANING[pn]}）無主星，這部分較難單獨判讀。`);
+    basedOn.push(`紫微・${pn}：${p.mainStars}`);
+  });
+  if(tg){ const pick = { "財務／金錢":["年干",tg.yearStem], "感情／關係":["日支藏干",(tg.dayBranchHidden||[])[0]], "人際／家庭":["年干",tg.yearStem], "副業／創業":["時干",tg.hourStem || tg.monthStem] }[cat] || ["月干",tg.monthStem];
+    if(pick[1] && TENGOD_INFO[pick[1]]){ reasoning.push(`八字・${pick[0]}為「${pick[1]}」：${TENGOD_INFO[pick[1]].t}，強項是${TENGOD_INFO[pick[1]].s}。`); basedOn.push(`八字・${pick[0]}：${pick[1]}`); } }
+  const yr = a.targetYear || CURRENT_YEAR;
+  if(c.bazi && c.bazi.dataSource !== "mock" && c.bazi.yearGanZhi && /流年/.test(cat)){ const gz = c.bazi.yearGanZhi[yr];
+    if(gz){ reasoning.push(`八字・${yr} 流年「${gz}」，天干屬${YEAR_WX[gz[0]]}，${ELEMENT_MEANING[YEAR_WX[gz[0]]]}相關的事比較容易成為重點。`); basedOn.push(`八字・${yr} 流年：${gz}`); } }
+  let pyNum = null;
+  if(c.numerology){ const n = c.numerology; pyNum = yr === n.nextPersonalYear.year ? n.nextPersonalYear.number : n.personalYear.number;
+    reasoning.push(`生命靈數 ${yr} 流年數 ${pyNum}：${PERSONAL_YEAR[pyNum]||""}。`); basedOn.push(`生命靈數：${yr} 流年數 ${pyNum}`);
+    if([1,3,5,8].includes(pyNum)) tone += 1; if([2,4,7,9].includes(pyNum)) tone -= 0.5; }
+
+  const dir = tone >= 1 ? "可以主動一點，把握機會往前推進" : tone <= -1 ? "先穩住腳步、把基礎打好，不急著做大變動" : "適合先小步嘗試，邊做邊確認方向";
+  const topic = { "工作／事業":"工作","財務／金錢":"財務","感情／關係":"感情","人際／家庭":"人際與家庭","副業／創業":"副業","認識自己":"現階段","2026 流年":"2026 年","2027 流年":"2027 年" }[cat] || "現階段";
+  const actionsMap = {
+    "工作／事業":[["列出工作中最有成就感、最消耗你的各 3 件事","看清楚你真正的強項與消耗點","今晚花 15 分鐘寫在手機備忘錄"],["把想嘗試的方向寫成 1-2 個具體職位或專案","模糊的「想轉職」很難行動","在求職網站搜尋 3 個職缺，看要求什麼能力"],["找一位該領域的人聊 30 分鐘","用真實資訊取代想像","這週傳一則訊息約時間"]],
+    "財務／金錢":[["記帳 2 週","先看清楚錢去哪了","下載一個記帳 App，每晚睡前記"],["發薪日先存一筆再花","用制度取代意志力","設定自動轉帳"],["寫下一個可以小規模試的額外收入方式","從現有能力延伸最快","列出別人常來問你的 3 件事"]],
+    "感情／關係":[["寫下你在關係中最在意的 3 件事","先搞清楚自己要什麼","找一個安靜的時間寫下來"],["下次溝通先說感受、再說需求","減少對方防衛","用「我覺得…我希望…」開頭"],["給自己一段只觀察、不做決定的時間","避免情緒下做決定","設定 2 週後再回頭看"]],
+    "人際／家庭":[["列出最消耗你的人際情境","知道界線要設在哪","回想最近一個月讓你累的 3 個時刻"],["練習一句溫和但清楚的拒絕","界線需要說出來","先在小事上用一次"],["每週留一段只屬於自己的時間","把能量補回來","在行事曆上先排好"]],
+    "副業／創業":[["列出 3 個別人常來問你的事","這就是最容易變現的方向","問 3 位朋友：你們覺得我擅長什麼？"],["用 2-4 週做一個最小版本測試","先驗證有沒有人要","做一篇貼文或一個簡單服務方案"],["設定每週固定投入的時數","副業最怕沒有節奏","在行事曆上固定 2 個時段"]]
+  }[cat] || [["寫下最近讓你最有能量的 3 件事","找到你的天賦線索","今晚花 10 分鐘寫"],["挑一個強項，這週刻意多用它","強項越用越清楚","選一個工作或生活中的場合"],["留意自己最容易卡住的情境","先察覺才能調整","每天睡前記一句"]];
+
+  return {
+    oneLiner: traits.length ? `你是「${traits.slice(0,2).map(t=>t.trait).join("」又「")}」的人；${topic}${dir}。` : `${topic}${dir}。`,
+    questionAnswer:{ conclusion:`就${topic}來看，你目前${dir}。`, reasoning, actions: actionsMap.map(x=>x[0]), watchOut:["以上為依命盤資料的傳統詮釋整理，僅供參考"], basedOn },
+    coreTraits: traits.slice(0,5),
+    hiddenStrengths: [], stuckPoints: stuck.slice(0,3), contrasts: [],
+    decision:null, career:null, income:null, relationship:null, lifeStage:null,
+    next30: actionsMap.map(x=>({ what:x[0], why:x[1], how:x[2] })), next90: [],
+    finalWords:"",
+    followUpSuggestions: defaultSuggestions(),
+    disclaimer:"目前為內建解讀（未連上 AI）。內容依真實排盤資料與傳統常見詮釋整理，屬傳統文化與娛樂性參考，不構成醫療、法律或投資建議。"
+  };
+}
+
+function localFollowUp(question){
+  const cat = inferCategory(question) || state.lastPayload.analysis.question.category;
+  const r = localInterpret(state.lastPayload, cat);
+  return {
+    answer: [r.questionAnswer.conclusion, r.questionAnswer.reasoning.slice(0,3).join("\n"), "（目前為內建解讀，連上 AI 後回答會更貼近你的提問。）"].filter(Boolean).join("\n\n"),
+    basedOn: r.questionAnswer.basedOn.slice(0,4), actions: r.questionAnswer.actions.slice(0,2), nextQuestions: defaultSuggestions()
+  };
+}
+
+/* =========================================================
+   7. 解析 AI 回傳 JSON（含 fallback）
+   ========================================================= */
+function parseAIResponse(text){
+  if(typeof text !== "string" || !text.trim()) return { ok:false, raw:String(text ?? "") };
+  try{ return { ok:true, data:JSON.parse(text) }; }catch(e){}
+  const block = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if(block){ try{ return { ok:true, data:JSON.parse(block[1].trim()) }; }catch(e){} }
+  const s = text.indexOf("{"), e = text.lastIndexOf("}");
+  if(s !== -1 && e > s){ try{ return { ok:true, data:JSON.parse(text.slice(s,e+1)) }; }catch(err){} }
+  return { ok:false, raw:text };
+}
+
+function normalizeReport(r){
+  r = r || {};
+  const qa = r.questionAnswer || {};
+  const obj = x => (x && typeof x === "object" && !Array.isArray(x)) ? x : null;
+  return {
+    oneLiner: r.oneLiner || "",
+    questionAnswer:{ conclusion: qa.conclusion || qa.answer || "", reasoning: Array.isArray(qa.reasoning) ? qa.reasoning : (qa.reasoning ? [qa.reasoning] : []),
+      actions: arr(qa.actions), watchOut: arr(qa.watchOut), basedOn: arr(qa.basedOn) },
+    coreTraits: arr(r.coreTraits), hiddenStrengths: arr(r.hiddenStrengths), stuckPoints: arr(r.stuckPoints), contrasts: arr(r.contrasts),
+    decision: obj(r.decision), career: obj(r.career), income: obj(r.income), relationship: obj(r.relationship), lifeStage: obj(r.lifeStage),
+    next30: arr(r.next30), next90: arr(r.next90), finalWords: r.finalWords || "",
+    followUpSuggestions: arr(r.followUpSuggestions), disclaimer: r.disclaimer || ""
+  };
+}
+
+/* =========================================================
+   8. 主流程：報告分 3 部分同時產生，再合併
+   ========================================================= */
+async function handleSubmit(){
+  const user = collectUserInput();
+  if(!validateInput(user)){ toast("請檢查標示紅框的欄位"); return; }
+  if(!state.systems.length){ toast("請至少選擇一種命盤"); return; }
+  const rec = recommendSystems();
+  await runAnalysis(user, rec, [...state.systems], $("#question").value.trim());
+}
+
+async function runAnalysis(user, rec, systems, questionText){
+  goPage("loading");
+  state.chat = [];
+  try{
+    setStep(1); await sleep(200);
+    setStep(2);
+    systems = SYSTEM_ORDER.filter(k=>systems.includes(k));
+    const chart = await getChartData(user, systems);
+    state.lastPayload = buildPayload(user, chart, rec, systems, questionText);
+    setStep(3);
+    const parts = ["a","b","c"];
+    state.lastPrompt = parts.map(p=>`===== 第 ${p} 部分 =====\n` + generatePrompt(state.lastPayload, p)).join("\n\n");
+    setStep(4);
+    state.usedLocal = false; state.localReason = ""; state.partErrors = [];
+    let merged = {}, raws = [];
+    try{
+      const results = await Promise.allSettled(parts.map(p=>callAI({ kind:"report", part:p, prompt:generatePrompt(state.lastPayload, p), data:state.lastPayload })));
+      const missing = results.find(x=>x.status==="rejected" && x.reason && x.reason.backendMissing);
+      if(missing) throw missing.reason;
+      results.forEach((x,i)=>{
+        if(x.status==="fulfilled"){ raws.push(x.value); const pr = parseAIResponse(x.value); if(pr.ok) Object.assign(merged, pr.data); else state.partErrors.push(parts[i]); }
+        else { state.partErrors.push(parts[i]); raws.push("（失敗）" + (x.reason && x.reason.message)); }
+      });
+      if(state.partErrors.length === parts.length) throw new Error(results[0].reason ? results[0].reason.message : "AI 回應無法解析");
+    }catch(err){
+      if(!err.backendMissing) throw err;
+      state.usedLocal = true; state.localReason = err.message;   // 沒有 AI 後端 → 內建解讀
+      merged = localInterpret(state.lastPayload); raws = ["（內建解讀）"];
+    }
+    state.lastRawResponse = raws.join("\n\n=====\n\n");
+    setStep(5);
+    state.lastResult = normalizeReport(merged);
+    renderResult({ ok:true });
+  }catch(err){
+    console.error(err);
+    state.lastRawResponse = ""; state.lastResult = null;
+    renderResult({ ok:false, raw:"", error: err.message || String(err) });
+  }
+  renderChat();
+  goPage("result");
+}
+
+function retry(){
+  if(!state.lastPayload){ goPage("form"); return; }
+  const p = state.lastPayload;
+  runAnalysis(p.user, recommendSystems(), SYSTEM_ORDER.filter(k=>p.chart[k]), p.analysis.question.text);
+}
+
+/* =========================================================
+   9. 結果渲染
+   ========================================================= */
+function srcTag(ds){
+  return ds==="mock" ? `<span class="tag mock">模擬資料</span>` : ds==="calculated" ? `<span class="tag api">公式計算</span>` : `<span class="tag api">實際排盤</span>`;
+}
+function li(items){ return items && items.length ? `<ul class="rp-list">${items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>` : ""; }
+function kvRows(o, rows){ return rows.filter(([k])=>o[k]).map(([k,label])=>`<div class="rp-row"><span>${label}</span><p>${esc(o[k])}</p></div>`).join(""); }
+function pending(part){
+  if(state.usedLocal) return null;   // 內建解讀：沒有內容的段落直接不顯示
+  const msg = state.usedLocal ? "這部分需要 AI 結合你的人生狀態分析（目前未連上 AI）" : (state.partErrors||[]).includes(part) ? "這部分產生失敗，可以按下方「重新分析」再試一次" : "（AI 未提供）";
+  return `<p class="empty">${msg}</p>`;
+}
+function section(id, title, sub, body){ if(body == null || /^\s*$/.test(body)) return ""; return `<section class="rp-sec card" id="sec-${id}"><h3>${title}</h3>${sub?`<p class="rp-sub">${sub}</p>`:""}${body}</section>`; }
+
+function renderChartPanels(payload){
+  const c = payload.chart;
+  const keys = SYSTEM_ORDER.filter(k=>c[k]);
+  const primaryKey = SYSTEM_ORDER.find(k=>SYSTEMS[k].name===payload.analysis.primarySystem) || keys[0];
+  $("#r-sysTabs").innerHTML = keys.map(k=>`<button class="sys-tab ${k===primaryKey?"on":""}" data-sys="${k}">${SYSTEMS[k].name}${k===primaryKey?" ★":""}</button>`).join("");
+  const panel = {
+    ziwei: z => {
+      const focus = payload.analysis.focus["紫微斗數"] || [];
+      return `<div class="kv" style="margin-bottom:10px">${srcTag(z.dataSource)} ${z.fiveElementsClass ? `五行局：<b>${esc(z.fiveElementsClass)}</b>　` : ""}${z.soulStar ? `命主：<b>${esc(z.soulStar)}</b>　身主：<b>${esc(z.bodyStar)}</b>　` : ""}身宮：<b>${esc(z.bodyPalace||"—")}</b></div>
+      <div class="palaces">${z.palaces.map(p=>`<div class="palace ${focus.includes(p.palace)?"focus":""}"><small>${esc(p.palace)}${p.isBodyPalace?"・身":""}</small><b>${esc(p.mainStars)}</b>${p.minorStars?`<em>${esc(p.minorStars)}</em>`:""}</div>`).join("")}</div>
+      ${focus.length ? `<div class="kv" style="font-size:12px;margin-top:8px">粗框＝這次針對你的問題優先判讀的宮位</div>` : ""}
+      ${z.note ? `<div class="kv" style="font-size:12px">※ ${esc(z.note)}</div>` : ""}`;
+    },
+    bazi: b => `<div class="kv" style="margin-bottom:10px">${srcTag(b.dataSource)} 日主：<b>${esc(b.dayMaster)}</b></div>
+      <div class="pillars">${[["年柱",b.yearPillar],["月柱",b.monthPillar],["日柱",b.dayPillar],["時柱",b.hourPillar]].map(([k,v])=>`<div class="pillar"><small>${k}</small><b>${esc(v||"未知")}</b></div>`).join("")}</div>
+      ${b.lunarDate ? `<div class="kv">農曆：<b>${esc(b.lunarDate)}</b></div>` : ""}
+      <div class="kv" style="margin-top:6px">天干十神</div><div class="pill-list">${[["年干",b.tenGods?.yearStem],["月干",b.tenGods?.monthStem],["時干",b.tenGods?.hourStem]].filter(x=>x[1]).map(([k,v])=>`<span>${k}：${esc(v)}</span>`).join("") || "<span>—</span>"}${arr(b.tenGods?.dayBranchHidden).length?`<span>日支藏干：${esc(b.tenGods.dayBranchHidden.join("、"))}</span>`:""}</div>
+      <div class="kv" style="margin-top:10px">大運${b.currentLuck?`（目前：<b>${esc(b.currentLuck.pillar)}</b>）`:""}</div><div class="pill-list">${arr(b.luckCycles).map(l=>`<span class="${b.currentLuck&&b.currentLuck.pillar===l.pillar?"cur":""}">${esc(l.ageRange)}歲 ${esc(l.pillar)}</span>`).join("") || `<span>${esc(b.luckNote||"—")}</span>`}</div>
+      ${b.yearGanZhi ? `<div class="kv" style="margin-top:10px">流年：${Object.entries(b.yearGanZhi).map(([y,g])=>`${y} <b>${esc(g)}</b>`).join("　")}</div>` : ""}
+      ${b.note ? `<div class="kv" style="font-size:12px;margin-top:6px">※ ${esc(b.note)}</div>` : ""}`,
+    wuxing: w => {
+      const fe = w.fiveElements || {}; const total = Object.values(fe).reduce((a,b)=>a+(+b||0),0) || 1;
+      return `<div class="kv" style="margin-bottom:6px">${srcTag(w.dataSource)} 最旺：<b>${esc(w.strongest)}</b>　最弱：<b>${esc(w.weakest)}</b></div>
+        ${[["wood","木"],["fire","火"],["earth","土"],["metal","金"],["water","水"]].map(([k,n])=>`<div class="bar-row"><span>${n}</span><div class="bar"><i style="width:${((+fe[k]||0)/total*100).toFixed(0)}%;background:var(--${k})"></i></div><span>${+fe[k]||0}</span></div>`).join("")}
+        <div class="kv" style="font-size:12px">※ ${esc(w.method||"")}${w.note ? "；" + esc(w.note) : ""}</div>`;
+    },
+    numerology: n => `<div class="num-wrap"><div class="num-big">${esc(n.lifePathNumber)}</div>
+      <div class="num-info"><div>${srcTag(n.dataSource)} <b style="font-family:'Noto Serif TC',serif;font-size:18px">主命數 ${esc(n.lifePathNumber)} 號</b></div>
+      <div class="calc">${esc(n.calculation)}</div>
+      <div class="kv">傳統關鍵字：<b>${esc(n.keywords)}</b></div>
+      <div class="kv">生日數：<b>${esc(n.birthdayNumber)}</b>　${esc(n.personalYear.year)} 流年數：<b>${esc(n.personalYear.number)}</b>　${esc(n.nextPersonalYear.year)} 流年數：<b>${esc(n.nextPersonalYear.number)}</b></div>
+      <div class="kv" style="font-size:12px;margin-top:4px">※ ${esc(n.note)}</div></div></div>`
+  };
+  $("#r-sysPanels").innerHTML = keys.map(k=>`<div class="sys-panel ${k===primaryKey?"on":""}" id="sp-${k}">${panel[k](c[k])}</div>`).join("");
+}
+
+function renderReport(r){
+  const S = [];
+  // 我的核心人格
+  S.push(section("core","我的核心人格","3～5 個最重要的特質", r.coreTraits.length ? r.coreTraits.map((t,i)=>`
+    <div class="rp-item"><div class="rp-h"><i>${i+1}</i>${esc(t.trait)}</div>
+      ${t.basis?`<div class="rp-basis">命盤依據：${esc(t.basis)}</div>`:""}
+      ${kvRows(t,[["reality","現實表現"],["strength","優勢"],["blindspot","盲點"],["advice","建議"]])}</div>`).join("") : pending("a")));
+  // 隱藏優勢
+  S.push(section("hidden","我的隱藏優勢","你可能沒有意識到的能力", r.hiddenStrengths.length ? r.hiddenStrengths.map(h=>`
+    <div class="rp-item"><div class="rp-h">✦ ${esc(h.ability)}</div>${h.basis?`<div class="rp-basis">命盤依據：${esc(h.basis)}</div>`:""}
+      ${kvRows(h,[["whyOverlooked","為什麼容易被忽略"],["whereToUse","可以用在哪裡"],["ifDeveloped","刻意培養後"]])}</div>`).join("") : pending("a")));
+  // 卡點
+  S.push(section("stuck","我容易卡住的地方","3 個最值得注意的模式", r.stuckPoints.length ? r.stuckPoints.map((s,i)=>`
+    <div class="rp-item"><div class="rp-h"><i>${i+1}</i>${esc(s.point)}</div>${s.basis?`<div class="rp-basis">命盤依據：${esc(s.basis)}</div>`:""}
+      ${kvRows(s,[["cause","可能原因"],["howItHappens","生活中怎麼發生"],["consequence","可能造成的結果"],["realAdjustment","真正需要調整的"],["advice","具體建議"]])}</div>`).join("") : pending("b")));
+  // 反差
+  S.push(section("contrast","我的反差人格","", r.contrasts.length ? r.contrasts.map(c=>`<div class="rp-quote">${esc(c.text)}${c.basis?`<small>依據：${esc(c.basis)}</small>`:""}</div>`).join("") : pending("b")));
+  // 決策
+  const d = r.decision;
+  S.push(section("decision","我的決策模式","我如何做選擇", d ? kvRows(d,[["howYouDecide","通常怎麼決定"],["fastWhen","容易快速決定的時候"],["hesitateWhen","容易猶豫的時候"],["influence","受他人影響的程度"],["fearOfMistake","怕犯錯而延遲"],["impulsive","衝動開始"],["bestMethod","最適合的決策方式"]]) + (arr(d.manual).length?`<div class="rp-manual"><b>你的決策使用說明書</b>${li(d.manual)}</div>`:"") : pending("b")));
+  // 職涯
+  const cr = r.career;
+  S.push(section("career","我的職涯使用說明書","工作模式、優勢、盲點與方向", cr ? kvRows(cr,[["environment","適合的工作環境"],["structure","流程 vs 自由"],["teamwork","獨立 vs 團隊"],["pace","穩定累積 vs 專案型"],["workType","適合的工作類型"],["draining","最容易消耗的環境"]])
+    + `<div class="rp-grid">${[["核心優勢",cr.strengths],["職涯盲點",cr.blindspots],["最值得累積的能力",cr.skillsToBuild],["可轉換成更高價值",cr.higherValue]].filter(x=>arr(x[1]).length).map(([t,v])=>`<div class="rp-box"><b>${t}</b>${li(v)}</div>`).join("")}</div>`
+    + (arr(cr.manual).length?`<div class="rp-manual"><b>你的職涯使用說明書</b>${li(cr.manual)}</div>`:"") : pending("c")));
+  // 收入
+  const ic = r.income;
+  S.push(section("income","我的收入模式地圖","能力如何轉換成價值與收入", ic ? kvRows(ic,[["attitude","對金錢的態度"],["valueCreation","創造價值的方式"],["singleOrMulti","單一 vs 多元收入"],["accumulate","最該累積的"],["afterIncrease","收入增加後要注意"],["priority","優先培養的能力"]])
+    + (arr(ic.blindspots).length?`<div class="rp-box"><b>金錢盲點</b>${li(ic.blindspots)}</div>`:"")
+    + (arr(ic.map).length?`<div class="rp-map">${ic.map.map(m=>`<div class="rp-chain">${[["能力",m.ability],["價值",m.value],["工作／服務",m.service],["收入模式",m.model],["要補強",m.toImprove]].map(([k,v])=>`<div><small>${k}</small>${esc(v||"—")}</div>`).join('<span class="arrow">→</span>')}</div>`).join("")}</div>`:"") : pending("c")));
+  // 人際感情
+  const rl = r.relationship;
+  S.push(section("relation","我的人際／感情模式","理解自己的關係模式", rl ? kvRows(rl,[["build","如何建立關係"],["role","常扮演的角色"],["pattern","容易出現的互動模式"],["insecurity","容易不安的時候"],["overGiving","過度付出或防衛"],["communication","溝通問題"],["boundaries","適合的界線"]]) : pending("c")));
+  // 人生課題
+  const ls = r.lifeStage;
+  S.push(section("stage","我現在的人生課題","", ls ? kvRows(ls,[["lesson","現階段最重要的課題"],["learning","正在學習的能力"],["resistance","最容易遇到的阻力"],["accumulate","現在最值得累積"],["noRush","可以暫時不急的事"],["nextStage","下一階段要注意"]]) : pending("c")));
+  // 30 天
+  S.push(section("next30","我的下一步","接下來 30 天", r.next30.length ? `<ol class="rp-steps">${r.next30.map(x=>`<li><b>${esc(x.what)}</b>${x.why?`<p><span>為什麼</span>${esc(x.why)}</p>`:""}${x.how?`<p><span>怎麼開始</span>${esc(x.how)}</p>`:""}</li>`).join("")}</ol>` : pending("c")));
+  // 90 天
+  S.push(section("next90","我的 90 天方向","如果想讓自己變得更好，現在應該累積什麼", r.next90.length ? `<ol class="rp-steps">${r.next90.map(x=>`<li><b>${esc(x.direction)}</b>${x.why?`<p>${esc(x.why)}</p>`:""}</li>`).join("")}</ol>` : pending("c")));
+  if(state.usedLocal) S.push(`<div class="card rp-sec"><p class="kv">✦ 連上 AI 後，這裡還會結合你的年齡、工作與生活狀態，產生「隱藏優勢、反差人格、決策模式、職涯使用說明書、收入模式地圖、人際感情模式、人生課題、90 天方向」等完整分析。</p></div>`);
+  if(r.finalWords) S.push(`<div class="final-words"><small>給現在的我一句話</small><p>${esc(r.finalWords)}</p></div>`);
+  $("#r-sections").innerHTML = S.join("");
+  const navItems = [["core","核心人格"],["hidden","隱藏優勢"],["stuck","卡點"],["contrast","反差"],["decision","決策"],["career","職涯"],["income","收入"],["relation","人際感情"],["stage","人生課題"],["next30","30 天"],["next90","90 天"]];
+  $("#r-nav").innerHTML = navItems.filter(([id])=>document.getElementById("sec-"+id)).map(([id,t])=>`<a href="#sec-${id}" data-go="sec-${id}">${t}</a>`).join("");
+}
+
+function renderResult(parsed){
+  const p = state.lastPayload;
+  if(p){
+    const u = p.user, q = p.analysis.question;
+    $("#r-title").textContent = `${u.name} 的命盤分析`;
+    $("#r-meta").innerHTML = `${esc(u.birthDate)} ${esc(u.birthTime || "時間未知")} · ${esc(u.birthPlace)}${u.profile && u.profile.age!=null ? ` · ${u.profile.age} 歲` : ""} <span class="tag type">${esc(q.category)}</span>`;
+    const mockSys = SYSTEM_ORDER.filter(k=>p.chart[k]?.dataSource==="mock").map(k=>SYSTEMS[k].name);
+    const msgs = [];
+    if(state.usedLocal) msgs.push(`目前為<b>內建解讀</b>：依真實排盤資料與傳統詮釋整理，尚未連上 AI，所以決策、職涯、收入、感情等深度分析暫時不會出現。${IS_ADMIN ? `（原因：${esc(state.localReason)}）` : ""}`);
+    if(mockSys.length) msgs.push(`${esc(mockSys.join("、"))} 排盤套件未載入，暫時使用<b>模擬資料</b>（請確認網路可連到 cdn.jsdelivr.net）。`);
+    if(state.settings.provider === "mock") msgs.push(`目前是<b>模擬 AI 模式</b>（管理者測試）。`);
+    $("#r-mockBanner").style.display = msgs.length ? "block" : "none";
+    $("#r-mockBanner").innerHTML = msgs.map(m=>"⚠ "+m).join("<br>");
+    $("#r-question").innerHTML = `你的問題（${esc(q.category)}）：<b>${esc(q.text || "未填寫具體描述")}</b>　·　主要參考：<b>${esc(p.analysis.primarySystem)}</b>`;
+    renderChartPanels(p);
+  }
+  $("#r-json").textContent = p ? JSON.stringify(p,null,2) : "";
+  $("#r-prompt").textContent = state.lastPrompt || "";
+  $("#r-rawres").textContent = state.lastRawResponse || "（無）";
+
+  const rawBox = $("#r-raw");
+  if(!parsed.ok){
+    ["#r-report","#r-qaCard","#r-oneCard"].forEach(id=>$(id).style.display = "none");
+    rawBox.style.display = "block";
+    rawBox.innerHTML = `<div class="raw-warn">⚠ 分析失敗：${esc(parsed.error || "AI 回傳內容無法解析")}</div>
+      <div class="card"><p class="kv">請稍後再試一次。如果一直失敗，代表後端尚未設定完成（網站管理者可查看 Netlify 的 Functions 紀錄）。</p>
+      <div class="form-actions" style="justify-content:flex-start">${IS_ADMIN ? '<button class="btn btn-ghost" onclick="openSettings()">開啟 AI 設定</button>' : ""}<button class="btn btn-gold" onclick="retry()">重新分析</button></div></div>`;
+    $("#r-disclaimer").textContent = "內容為傳統文化與娛樂性參考，不構成醫療、法律或投資建議。";
+    $("#chatCard").style.display = "none";
+    return;
+  }
+  rawBox.style.display = "none";
+  ["#r-report","#r-qaCard","#r-oneCard","#chatCard"].forEach(id=>$(id).style.display = "block");
+  const r = state.lastResult, qa = r.questionAnswer;
+  $("#r-oneLiner").textContent = r.oneLiner || "（AI 未提供）";
+  $("#r-answer").innerHTML = `<div class="qa-conclusion">${esc(qa.conclusion || "（AI 未提供針對問題的回答）")}</div>` +
+    (qa.reasoning.length ? `<div class="kv" style="margin:12px 0 6px">為什麼這樣建議</div><ol class="reason-list">${qa.reasoning.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>` : "");
+  $("#r-actions").innerHTML = qa.actions.length ? qa.actions.map(a=>`<li>${esc(a)}</li>`).join("") : `<li>（無）</li>`;
+  $("#r-watch").innerHTML = qa.watchOut.length ? `<div class="kv" style="margin:14px 0 6px">需要留意</div><ul class="watch-list">${qa.watchOut.map(w=>`<li>${esc(w)}</li>`).join("")}</ul>` : "";
+  $("#r-used").innerHTML = qa.basedOn.length ? `<span class="used-label">命盤依據</span>` + qa.basedOn.map(b=>`<span>${esc(b)}</span>`).join("") : "";
+  renderReport(r);
+  $("#r-disclaimer").textContent = "免責聲明：" + (r.disclaimer || "內容為傳統文化與娛樂性參考，不構成醫療、法律或投資建議。");
+  renderSuggestions(r.followUpSuggestions);
+}
+
+function activateTab(name){
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on", b.dataset.tab===name));
+  document.querySelectorAll(".tab-panel").forEach(p=>p.classList.toggle("on", p.id==="tp-"+name));
+}
+
+/* =========================================================
+   10. 延伸提問
+   ========================================================= */
+function defaultSuggestions(){
+  const cat = state.lastPayload?.analysis.question.category || "";
+  const base = {
+    "工作／事業":["我適合現在轉職嗎？","我適合什麼樣的主管或團隊？"],
+    "財務／金錢":["我要怎麼改善存錢的習慣？","我適合發展額外收入嗎？"],
+    "感情／關係":["我在關係中最需要調整什麼？","我適合什麼樣的伴侶？"],
+    "副業／創業":["我的副業可以從哪裡開始？","我適合一個人做還是找夥伴？"],
+    "人際／家庭":["我要怎麼和家人相處比較輕鬆？","我適合什麼樣的朋友圈？"],
+    "認識自己":["我的天賦可以怎麼發揮？","我最容易卡住的地方是什麼？"],
+    "2026 流年":["2026 年下半年要注意什麼？","今年適合做出重大決定嗎？"],
+    "2027 流年":["2027 年最值得把握的是什麼？","明年要提早準備什麼？"]
+  };
+  return base[cat] || ["我的優勢是什麼？","我現在最該注意什麼？"];
+}
+function renderSuggestions(list){
+  const items = (list && list.length ? list : defaultSuggestions()).slice(0,4);
+  $("#suggest").innerHTML = items.map(s=>`<button type="button" data-q="${esc(s)}">${esc(s)}</button>`).join("");
+}
+
+function renderChat(){
+  const log = $("#chatLog");
+  if(!state.chat.length){ log.innerHTML = `<div class="chat-empty">還沒有提問，試試下面的問題 👇</div>`; return; }
+  log.innerHTML = state.chat.map(m=>{
+    if(m.role==="user") return `<div class="msg user t">${esc(m.text)}</div>`;
+    if(m.role==="typing") return `<div class="msg ai typing"><span></span><span></span><span></span></div>`;
+    if(m.role==="error") return `<div class="msg ai err t">${esc(m.text)}</div>`;
+    const d = m.data;
+    if(!d) return `<div class="msg ai t">${esc(m.text)}</div>`;
+    return `<div class="msg ai"><div class="t">${esc(d.answer || m.text)}</div>` +
+      (arr(d.actions).length ? `<ul>${d.actions.map(a=>`<li>${esc(a)}</li>`).join("")}</ul>` : "") +
+      (arr(d.basedOn).length ? `<div class="basis">依據：${d.basedOn.map(esc).join("、")}</div>` : "") + `</div>`;
+  }).join("");
+  log.scrollTop = log.scrollHeight;
+}
+
+async function sendFollowUp(text){
+  const q = (text ?? $("#chatInput").value).trim();
+  if(!q || state.chatBusy) return;
+  if(!state.lastPayload){ toast("請先完成命盤解析"); return; }
+  state.chatBusy = true; $("#chatSend").disabled = true;
+  $("#chatInput").value = "";
+  const history = state.chat.filter(m=>m.role==="user"||m.role==="ai");
+  state.chat.push({ role:"user", text:q }, { role:"typing" });
+  renderChat();
+  try{
+    const prompt = generateFollowUpPrompt(state.lastPayload, state.lastResult, history, q);
+    let raw;
+    try{
+      raw = await callAI({ kind:"followup", prompt, data:state.lastPayload, report:state.lastResult,
+        history: history.map(m=>({ role:m.role, text:m.text })), question:q });
+    }catch(err){
+      if(!err.backendMissing) throw err;
+      raw = JSON.stringify(localFollowUp(q));
+    }
+    const parsed = parseAIResponse(raw);
+    state.chat.pop();
+    if(parsed.ok){
+      const d = parsed.data || {};
+      state.chat.push({ role:"ai", text: d.answer || raw, data:d });
+      if(arr(d.nextQuestions).length) renderSuggestions(d.nextQuestions);
+    }else{
+      state.chat.push({ role:"ai", text: parsed.raw || "（AI 沒有回應內容）" });  // fallback：顯示原文
+    }
+  }catch(err){
+    console.error(err);
+    state.chat.pop();
+    state.chat.push({ role:"error", text:"⚠ 回答失敗：" + (err.message || err) });
+  }
+  state.chatBusy = false; $("#chatSend").disabled = false;
+  renderChat();
+}
+
+/* =========================================================
+   11. 介面初始化
+   ========================================================= */
+function fillDemo(){
+  $("#name").value = "範例使用者";
+  $("#birthDate").value = "1995-06-15";
+  $("#birthTime").value = "08:30";
+  $("#timeUnknown").checked = false; $("#birthTime").disabled = false;
+  $("#birthPlace").value = "台灣 台北市";
+  $("#gender").value = "不提供";
+  if(!state.category) state.category = "工作／事業";
+  if(!$("#occupation").value) $("#occupation").value = "行銷企劃，工作第 4 年";
+  if(!$("#currentState").value) $("#currentState").value = "工作穩定但有點倦怠，下班後在經營自己的社群，想知道要不要往這個方向發展。";
+  if(!$("#question").value) $("#question").value = "在現在的公司做了三年，最近一直想轉職，但不確定要不要離開穩定的工作。";
+  renderCatChips(); renderRecommendation();
+  document.querySelectorAll(".field.err").forEach(f=>f.classList.remove("err"));
+}
+function resetAll(){
+  ["name","birthDate","birthTime","birthPlace","question","occupation","currentState"].forEach(id=>$("#"+id).value="");
+  $("#gender").value = "不提供"; $("#timeUnknown").checked = false; $("#birthTime").disabled = false;
+  state.category = ""; state.systems = []; state.systemsTouched = false;
+  state.lastPayload = null; state.lastResult = null; state.lastPrompt = ""; state.lastRawResponse = ""; state.chat = [];
+  renderCatChips(); renderRecommendation();
+  goPage("home");
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  loadSettings();
+  if(!IS_ADMIN) document.querySelector(".icon-btn").style.display = "none";
+  if(!IS_ADMIN) $("#adminCard").style.display = "none";
+  renderCatChips();
+  renderRecommendation();
+
+  $("#page-home").addEventListener("click",e=>{
+    const b = e.target.closest(".pg button"); if(!b) return;
+    state.category = b.dataset.cat; state.systemsTouched = false;
+    $("#question").value = b.dataset.q;
+    renderCatChips(); renderRecommendation(); goPage("form");
+  });
+  $("#catChips").addEventListener("click",e=>{
+    const b = e.target.closest(".chip"); if(!b) return;
+    state.category = state.category===b.dataset.cat ? "" : b.dataset.cat;
+    state.systemsTouched = false;
+    renderCatChips(); renderRecommendation();
+  });
+  let qTimer;
+  $("#question").addEventListener("input",()=>{ clearTimeout(qTimer); qTimer = setTimeout(()=>{ if(!state.category){ state.systemsTouched=false; } renderRecommendation(); },300); });
+  $("#timeUnknown").addEventListener("change",e=>{
+    $("#birthTime").disabled = e.target.checked;
+    $("#timeReq").style.display = e.target.checked ? "none" : "inline";
+    $("#f-birthTime").classList.remove("err");
+    state.systemsTouched = false; renderRecommendation();
+  });
+  $("#sysPick").addEventListener("click",e=>{
+    const el = e.target.closest(".sp"); if(!el) return;
+    const k = el.dataset.sys;
+    if(timeUnknown() && SYSTEMS[k].needTime){ toast(SYSTEMS[k].name + " 需要出生時間"); return; }
+    state.systemsTouched = true;
+    state.systems = state.systems.includes(k) ? state.systems.filter(x=>x!==k) : [...state.systems, k];
+    renderSysPick();
+  });
+  $("#tabs").addEventListener("click",e=>{ const b = e.target.closest(".tab"); if(b) activateTab(b.dataset.tab); });
+  $("#r-nav").addEventListener("click",e=>{ const a = e.target.closest("a[data-go]"); if(!a) return; e.preventDefault(); const t = document.getElementById(a.dataset.go); if(t) t.scrollIntoView({behavior:"smooth",block:"start"}); });
+  $("#r-sysTabs").addEventListener("click",e=>{
+    const b = e.target.closest(".sys-tab"); if(!b) return;
+    document.querySelectorAll(".sys-tab").forEach(x=>x.classList.toggle("on", x===b));
+    document.querySelectorAll(".sys-panel").forEach(x=>x.classList.toggle("on", x.id==="sp-"+b.dataset.sys));
+  });
+  $("#suggest").addEventListener("click",e=>{ const b = e.target.closest("button"); if(b) sendFollowUp(b.dataset.q); });
+  $("#chatInput").addEventListener("keydown",e=>{
+    if(e.key==="Enter" && !e.shiftKey && !e.isComposing){ e.preventDefault(); sendFollowUp(); }
+  });
+  ["name","birthDate","birthTime","birthPlace"].forEach(id=>$("#"+id).addEventListener("input",()=>$("#f-"+id).classList.remove("err")));
+  $("#settingsModal").addEventListener("click",e=>{ if(e.target.id==="settingsModal") closeSettings(); });
+  window.addEventListener("error",e=>{ console.error(e.error||e.message); toast("發生錯誤，請重新嘗試"); });
+});
+</script>
+</body>
+</html>

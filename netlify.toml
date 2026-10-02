@@ -1,0 +1,14 @@
+# Netlify 設定：網站根目錄就是 index.html 所在資料夾，後端函式放在 netlify/functions
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# 讓前端可以用 /api/ai 呼叫後端（實際路徑是 /.netlify/functions/ai）
+[[redirects]]
+  from = "/api/ai"
+  to = "/.netlify/functions/ai"
+  status = 200
+  force = true
